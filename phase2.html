@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>성수 모빌리티 – Policy Simulation & Strategy</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a2236;
+  --bg-input: #0d1322;
+  --border: #1e2d4a;
+  --border-active: #3b82f6;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-green: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #8b5cf6;
+  --accent-pink: #ec4899;
+  --policy-a: #3b82f6;
+  --policy-b: #10b981;
+  --policy-c: #f59e0b;
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --header-height: 56px;
+  --left-width: 300px;
+  --right-width: 400px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Pretendard','Inter',-apple-system,sans-serif; background:var(--bg-primary); color:var(--text-primary); height:100vh; overflow:hidden; }
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+/* HEADER */
+.header { height:var(--header-height); background:var(--bg-secondary); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 20px; position:fixed; top:0; left:0; right:0; z-index:1000; }
+.header-left { display:flex; align-items:center; gap:14px; }
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-icon { width:32px;height:32px; background:linear-gradient(135deg,#8b5cf6,#3b82f6); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.logo-text { font-size:16px; font-weight:700; }
+.logo-badge { font-size:10px; background:var(--accent-purple); color:white; padding:2px 8px; border-radius:20px; font-weight:600; }
+.back-link { display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text-muted); text-decoration:none; padding:4px 10px; border-radius:var(--radius-sm); transition:all .2s; }
+.back-link:hover { color:var(--text-primary); background:rgba(255,255,255,.05); }
+.header-center { display:flex; align-items:center; gap:6px; }
+.header-tab { padding:6px 16px; border-radius:var(--radius-sm); font-size:13px; font-weight:500; color:var(--text-secondary); cursor:pointer; transition:all .2s; border:none; background:none; font-family:inherit; }
+.header-tab:hover { color:var(--text-primary); background:rgba(255,255,255,.05); }
+.header-tab.active { color:white; background:var(--accent-purple); }
+.header-right { display:flex; align-items:center; gap:10px; }
+.header-btn { display:flex; align-items:center; gap:6px; padding:6px 14px; border-radius:var(--radius-sm); font-size:12px; font-weight:500; cursor:pointer; border:1px solid var(--border); background:var(--bg-card); color:var(--text-secondary); transition:all .2s; font-family:inherit; }
+.header-btn:hover { border-color:var(--accent-purple); color:var(--text-primary); }
+.sim-status { display:flex; align-items:center; gap:8px; padding:8px 14px; background:rgba(139,92,246,.08); border:1px solid rgba(139,92,246,.2); border-radius:var(--radius-md); font-size:12px; color:var(--accent-purple); font-weight:500; }
+.sim-dot { width:8px;height:8px; border-radius:50%; background:var(--accent-purple); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* LAYOUT */
+.app-body { margin-top:var(--header-height); height:calc(100vh - var(--header-height)); display:flex; }
+
+/* LEFT PANEL */
+.left-panel { width:var(--left-width); background:var(--bg-secondary); border-right:1px solid var(--border); overflow-y:auto; flex-shrink:0; z-index:800; }
+.panel-section { padding:16px; border-bottom:1px solid var(--border); }
+.panel-section-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); margin-bottom:12px; }
+.scenario-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; margin-bottom:6px; cursor:pointer; transition:all .2s; }
+.scenario-card:hover { border-color:var(--border-active); }
+.scenario-card.active { border-color:var(--accent-purple); background:rgba(139,92,246,.06); }
+.scenario-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.scenario-card-title { font-size:12px; font-weight:600; }
+.scenario-card-tag { font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.scenario-card-desc { font-size:10px; color:var(--text-muted); line-height:1.5; margin-bottom:8px; }
+.param-group { margin-bottom:10px; }
+.param-label { display:flex; justify-content:space-between; margin-bottom:4px; }
+.param-name { font-size:10px; color:var(--text-secondary); }
+.param-value { font-size:11px; font-weight:700; color:var(--accent-cyan); }
+.param-slider { -webkit-appearance:none; width:100%; height:4px; border-radius:2px; background:var(--bg-input); outline:none; cursor:pointer; }
+.param-slider::-webkit-slider-thumb { -webkit-appearance:none; width:14px;height:14px; border-radius:50%; background:var(--accent-purple); border:2px solid white; cursor:grab; box-shadow:0 0 6px rgba(139,92,246,.4); }
+.param-ticks { display:flex; justify-content:space-between; margin-top:3px; font-size:8px; color:var(--text-muted); }
+
+/* Policy selector */
+.policy-option { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-sm); cursor:pointer; transition:all .2s; margin-bottom:4px; }
+.policy-option:hover { border-color:var(--border-active); }
+.policy-option.selected { border-width:2px; }
+.policy-option[data-policy="A"].selected { border-color:var(--policy-a); background:rgba(59,130,246,.06); }
+.policy-option[data-policy="B"].selected { border-color:var(--policy-b); background:rgba(16,185,129,.06); }
+.policy-option[data-policy="C"].selected { border-color:var(--policy-c); background:rgba(245,158,11,.06); }
+.policy-check { width:16px;height:16px; border:2px solid var(--border); border-radius:3px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px; color:transparent; transition:all .2s; }
+.policy-option.selected .policy-check { color:white; }
+.policy-option[data-policy="A"].selected .policy-check { border-color:var(--policy-a); background:var(--policy-a); }
+.policy-option[data-policy="B"].selected .policy-check { border-color:var(--policy-b); background:var(--policy-b); }
+.policy-option[data-policy="C"].selected .policy-check { border-color:var(--policy-c); background:var(--policy-c); }
+.policy-dot { width:8px;height:8px; border-radius:50%; flex-shrink:0; }
+.policy-label { font-size:11px; font-weight:600; }
+.policy-sub { font-size:9px; color:var(--text-muted); }
+
+.run-btn { width:100%; padding:10px; border:none; border-radius:var(--radius-md); background:linear-gradient(135deg,#8b5cf6,#3b82f6); color:white; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s; }
+.run-btn:hover { opacity:.9; }
+
+/* MAP CENTER */
+.map-area { flex:1; position:relative; }
+#map { width:100%; height:100%; background:var(--bg-primary); }
+.leaflet-container { background:var(--bg-primary) !important; }
+
+/* Map overlays */
+.map-controls { position:absolute; top:16px; left:16px; z-index:800; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+.map-controls > * { pointer-events:auto; }
+
+.map-toggle-group { display:flex; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-lg); }
+.map-toggle-btn { padding:8px 16px; font-size:12px; font-weight:600; border:none; background:none; color:var(--text-muted); cursor:pointer; font-family:inherit; transition:all .2s; white-space:nowrap; }
+.map-toggle-btn:not(:last-child) { border-right:1px solid var(--border); }
+.map-toggle-btn.active { background:var(--accent-purple); color:white; }
+
+.map-layer-panel { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px; box-shadow:var(--shadow-lg); }
+.map-layer-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted); margin-bottom:8px; }
+.map-layer-item { display:flex; align-items:center; gap:8px; padding:4px 0; cursor:pointer; }
+.map-layer-toggle { width:32px;height:18px; background:var(--bg-input); border-radius:9px; position:relative; transition:background .3s; border:1px solid var(--border); flex-shrink:0; }
+.map-layer-toggle::after { content:''; width:14px;height:14px; background:var(--text-muted); border-radius:50%; position:absolute; top:1px;left:1px; transition:all .3s; }
+.map-layer-toggle.on { background:var(--accent-purple); border-color:var(--accent-purple); }
+.map-layer-toggle.on::after { left:15px; background:white; }
+.map-layer-label { font-size:11px; color:var(--text-secondary); }
+
+/* Map legend */
+.map-legend { position:absolute; top:16px; right:16px; z-index:800; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px; box-shadow:var(--shadow-lg); min-width:170px; }
+.map-legend-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted); margin-bottom:8px; }
+.legend-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font-size:11px; color:var(--text-secondary); }
+.legend-line { width:20px; height:4px; border-radius:2px; flex-shrink:0; }
+
+/* Map KPI bar */
+.map-kpi-bar { position:absolute; bottom:16px; left:16px; right:16px; z-index:800; display:flex; gap:8px; pointer-events:none; }
+.map-kpi-bar > * { pointer-events:auto; }
+.map-kpi-chip { flex:1; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px; box-shadow:var(--shadow-lg); }
+.map-kpi-label { font-size:10px; color:var(--text-muted); margin-bottom:4px; }
+.map-kpi-row { display:flex; align-items:baseline; gap:6px; }
+.map-kpi-current { font-size:18px; font-weight:800; }
+.map-kpi-arrow { color:var(--text-muted); font-size:14px; }
+.map-kpi-sim { font-size:18px; font-weight:800; }
+.map-kpi-delta { font-size:10px; font-weight:700; margin-top:3px; }
+.map-kpi-delta.pos { color:var(--accent-green); }
+.map-kpi-delta.neg { color:var(--accent-red); }
+
+/* RIGHT PANEL */
+.right-panel { width:var(--right-width); background:var(--bg-secondary); border-left:1px solid var(--border); overflow-y:auto; flex-shrink:0; transition:margin-right .3s; }
+.right-panel.hidden { margin-right:calc(-1 * var(--right-width)); }
+.rpanel-toggle { position:absolute; right:var(--right-width); top:calc(var(--header-height) + 16px); width:26px;height:52px; background:var(--bg-card); border:1px solid var(--border); border-right:none; border-radius:var(--radius-sm) 0 0 var(--radius-sm); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:801; color:var(--text-muted); transition:all .3s; }
+.rpanel-toggle:hover { color:var(--text-primary); }
+.rpanel-toggle.shifted { right:0; }
+
+.rp-section { padding:16px; border-bottom:1px solid var(--border); }
+.rp-section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.rp-section-title { font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.rp-section-title i { color:var(--accent-purple); font-size:15px; }
+.rp-badge { font-size:9px; font-weight:700; padding:2px 8px; border-radius:10px; }
+
+/* Chart containers */
+.chart-box { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; margin-bottom:8px; }
+.chart-box-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.chart-box-title { font-size:11px; font-weight:600; color:var(--text-secondary); }
+.chart-box-tabs { display:flex; gap:2px; background:var(--bg-input); border-radius:var(--radius-sm); padding:2px; }
+.chart-box-tab { padding:3px 10px; border-radius:4px; font-size:10px; font-weight:600; color:var(--text-muted); cursor:pointer; border:none; background:none; font-family:inherit; transition:all .2s; }
+.chart-box-tab.active { background:var(--accent-purple); color:white; }
+.chart-body { height:150px; position:relative; }
+.chart-body.tall { height:190px; }
+.chart-body.small-multiples { height:320px; }
+
+/* Policy comparison cards */
+.policy-compare-row { display:flex; gap:6px; margin-bottom:8px; }
+.policy-compare-card { flex:1; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; border-top:3px solid transparent; }
+.policy-compare-card[data-p="A"] { border-top-color:var(--policy-a); }
+.policy-compare-card[data-p="B"] { border-top-color:var(--policy-b); }
+.policy-compare-card[data-p="C"] { border-top-color:var(--policy-c); }
+.pc-name { font-size:10px; font-weight:700; margin-bottom:6px; }
+.pc-name[data-p="A"] { color:var(--policy-a); }
+.pc-name[data-p="B"] { color:var(--policy-b); }
+.pc-name[data-p="C"] { color:var(--policy-c); }
+.pc-row { display:flex; justify-content:space-between; font-size:10px; padding:3px 0; border-bottom:1px solid rgba(30,45,74,.5); color:var(--text-secondary); }
+.pc-row:last-child { border-bottom:none; }
+.pc-val { font-weight:700; }
+
+/* Priority matrix mini */
+.matrix-mini { display:grid; grid-template-columns:1fr 1fr; gap:2px; background:var(--border); border-radius:var(--radius-sm); overflow:hidden; }
+.matrix-cell { background:var(--bg-input); padding:10px; }
+.matrix-cell-label { font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; }
+.matrix-cell.q1 .matrix-cell-label { color:var(--accent-green); }
+.matrix-cell.q2 .matrix-cell-label { color:var(--accent-blue); }
+.matrix-cell.q3 .matrix-cell-label { color:var(--accent-amber); }
+.matrix-cell.q4 .matrix-cell-label { color:var(--text-muted); }
+.matrix-tag { font-size:10px; padding:3px 6px; background:var(--bg-card); border-radius:3px; margin-bottom:3px; color:var(--text-secondary); display:flex; align-items:center; gap:4px; }
+.matrix-dot { width:5px;height:5px; border-radius:50%; flex-shrink:0; }
+
+/* KPI Table mini */
+.kpi-mini-table { width:100%; font-size:11px; border-collapse:collapse; }
+.kpi-mini-table th { text-align:left; padding:6px 8px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted); border-bottom:1px solid var(--border); background:var(--bg-input); }
+.kpi-mini-table td { padding:6px 8px; border-bottom:1px solid rgba(30,45,74,.4); color:var(--text-secondary); }
+.kpi-mini-table .kn { font-weight:600; color:var(--text-primary); }
+.kpi-bar-sm { height:5px; background:var(--bg-input); border-radius:3px; overflow:hidden; width:80px; }
+.kpi-bar-fill { height:100%; border-radius:3px; }
+
+.d3-tooltip { position:absolute; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; font-size:12px; color:var(--text-primary); pointer-events:none; box-shadow:var(--shadow-lg); z-index:9999; visibility:hidden; white-space:nowrap; }
+.d3-tooltip .tip-label { font-size:10px; color:var(--text-muted); margin-bottom:3px; }
+.d3-tooltip .tip-value { font-size:14px; font-weight:700; }
+
+/* Custom map markers */
+.sim-marker { border:none; background:none; }
+.sim-marker-inner { display:flex; align-items:center; justify-content:center; border-radius:50%; border:2px solid white; box-shadow:0 2px 8px rgba(0,0,0,.4); font-size:12px; color:white; }
+.sim-marker-pulse { position:absolute; border-radius:50%; animation:markerPulse 2s infinite; }
+@keyframes markerPulse { 0%{transform:scale(.8);opacity:.5} 50%{transform:scale(1.3);opacity:0} 100%{transform:scale(.8);opacity:0} }
+
+@keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <a href="index.html" class="back-link"><i class="ri-arrow-left-s-line"></i> Phase 1</a>
+    <div class="logo">
+      <div class="logo-icon"><i class="ri-flask-line"></i></div>
+      <span class="logo-text">Policy Simulation</span>
+      <span class="logo-badge">Phase 2</span>
+    </div>
+  </div>
+  <div class="header-center">
+    <button class="header-tab active" data-view="simulation">시뮬레이션</button>
+    <button class="header-tab" data-view="comparison">정책 비교</button>
+    <button class="header-tab" data-view="kpi">KPI Framework</button>
+  </div>
+  <div class="header-right">
+    <div class="sim-status"><div class="sim-dot"></div>시뮬레이션 완료</div>
+    <button class="header-btn" id="exportBtn"><i class="ri-file-chart-line"></i> 리포트</button>
+  </div>
+</header>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- LEFT: SCENARIO CONFIG -->
+  <aside class="left-panel">
+    <div class="panel-section">
+      <div class="panel-section-title">시나리오 설정</div>
+      <div class="scenario-card active" data-scenario="hq">
+        <div class="scenario-card-header">
+          <span class="scenario-card-title">🏢 HQ 입주 증가</span>
+          <span class="scenario-card-tag" style="background:rgba(59,130,246,.15);color:var(--accent-blue)">기본</span>
+        </div>
+        <div class="scenario-card-desc">대규모 사옥 입주 → 상주 인구·통근 수요 증가</div>
+        <div class="param-group">
+          <div class="param-label"><span class="param-name">추가 입주 인원</span><span class="param-value" id="vHq">5,000명</span></div>
+          <input type="range" class="param-slider" min="1000" max="15000" value="5000" step="500" id="sHq">
+          <div class="param-ticks"><span>1천</span><span>8천</span><span>1.5만</span></div>
+        </div>
+      </div>
+      <div class="scenario-card active" data-scenario="commute">
+        <div class="scenario-card-header">
+          <span class="scenario-card-title">🕐 출퇴근 수요 증가</span>
+          <span class="scenario-card-tag" style="background:rgba(6,182,212,.15);color:var(--accent-cyan)">수요</span>
+        </div>
+        <div class="scenario-card-desc">피크 시간대(07–09, 17–19시) 교통 수요 증가율</div>
+        <div class="param-group">
+          <div class="param-label"><span class="param-name">피크 수요 증가율</span><span class="param-value" id="vCom">+20%</span></div>
+          <input type="range" class="param-slider" min="5" max="50" value="20" step="5" id="sCom">
+          <div class="param-ticks"><span>+5%</span><span>+25%</span><span>+50%</span></div>
+        </div>
+      </div>
+      <div class="scenario-card" data-scenario="mobility">
+        <div class="scenario-card-header">
+          <span class="scenario-card-title">🚲 공유모빌리티 확장</span>
+          <span class="scenario-card-tag" style="background:rgba(16,185,129,.15);color:var(--accent-green)">전환</span>
+        </div>
+        <div class="scenario-card-desc">자전거·킥보드 거점 확대 시 분담률 변화</div>
+        <div class="param-group">
+          <div class="param-label"><span class="param-name">거점 확대 수</span><span class="param-value" id="vMob">+15개소</span></div>
+          <input type="range" class="param-slider" min="5" max="40" value="15" step="5" id="sMob">
+          <div class="param-ticks"><span>+5</span><span>+20</span><span>+40</span></div>
+        </div>
+      </div>
+      <div class="scenario-card" data-scenario="infra">
+        <div class="scenario-card-header">
+          <span class="scenario-card-title">🛣️ 인프라 개선</span>
+          <span class="scenario-card-tag" style="background:rgba(245,158,11,.15);color:var(--accent-amber)">인프라</span>
+        </div>
+        <div class="scenario-card-desc">도로 확장·교차로 개선·보행로 정비 투자</div>
+        <div class="param-group">
+          <div class="param-label"><span class="param-name">투자 규모</span><span class="param-value" id="vInf">150억</span></div>
+          <input type="range" class="param-slider" min="50" max="500" value="150" step="10" id="sInf">
+          <div class="param-ticks"><span>50억</span><span>250억</span><span>500억</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">정책 대안 선택</div>
+      <div class="policy-option selected" data-policy="A">
+        <div class="policy-check"><i class="ri-check-line"></i></div>
+        <div class="policy-dot" style="background:var(--policy-a)"></div>
+        <div><div class="policy-label">A안: 대중교통 중심</div><div class="policy-sub">버스 노선 확대 + 환승 개선</div></div>
+      </div>
+      <div class="policy-option selected" data-policy="B">
+        <div class="policy-check"><i class="ri-check-line"></i></div>
+        <div class="policy-dot" style="background:var(--policy-b)"></div>
+        <div><div class="policy-label">B안: 공유모빌리티</div><div class="policy-sub">자전거·킥보드 + 수요응답형</div></div>
+      </div>
+      <div class="policy-option selected" data-policy="C">
+        <div class="policy-check"><i class="ri-check-line"></i></div>
+        <div class="policy-dot" style="background:var(--policy-c)"></div>
+        <div><div class="policy-label">C안: 도로 인프라</div><div class="policy-sub">도로 확장 + 교차로 + 주차</div></div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <button class="run-btn" id="runBtn"><i class="ri-play-circle-line"></i> 시뮬레이션 실행</button>
+    </div>
+  </aside>
+
+  <!-- CENTER: MAP -->
+  <div class="map-area">
+    <div id="map"></div>
+
+    <!-- Map controls: top-left -->
+    <div class="map-controls">
+      <div class="map-toggle-group">
+        <button class="map-toggle-btn active" data-mode="current">현재</button>
+        <button class="map-toggle-btn" data-mode="simulated">시뮬레이션</button>
+        <button class="map-toggle-btn" data-mode="diff">변화량</button>
+      </div>
+      <div class="map-layer-panel">
+        <div class="map-layer-title">시뮬레이션 레이어</div>
+        <div class="map-layer-item" data-ly="roads"><div class="map-layer-toggle on"></div><span class="map-layer-label">도로 혼잡도</span></div>
+        <div class="map-layer-item" data-ly="policyA"><div class="map-layer-toggle on"></div><span class="map-layer-label" style="color:var(--policy-a)">A안 버스 노선</span></div>
+        <div class="map-layer-item" data-ly="policyB"><div class="map-layer-toggle on"></div><span class="map-layer-label" style="color:var(--policy-b)">B안 공유 거점</span></div>
+        <div class="map-layer-item" data-ly="policyC"><div class="map-layer-toggle"></div><span class="map-layer-label" style="color:var(--policy-c)">C안 도로 확장</span></div>
+        <div class="map-layer-item" data-ly="impact"><div class="map-layer-toggle on"></div><span class="map-layer-label">영향권 분석</span></div>
+      </div>
+    </div>
+
+    <!-- Map legend: top-right -->
+    <div class="map-legend" id="mapLegend">
+      <div class="map-legend-title">혼잡도 (시뮬레이션)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#10b981"></div>원활 개선</div>
+      <div class="legend-row"><div class="legend-line" style="background:#f59e0b"></div>소폭 악화</div>
+      <div class="legend-row"><div class="legend-line" style="background:#ef4444"></div>심각 악화</div>
+      <div class="legend-row"><div class="legend-line" style="background:#3b82f6;height:3px;border-top:3px dashed #3b82f6;height:0"></div><span style="display:flex;align-items:center;gap:4px"><span style="width:20px;border-top:2px dashed var(--policy-a)"></span>A안 신규노선</span></div>
+      <div class="legend-row"><div style="width:10px;height:10px;border-radius:50%;background:var(--policy-b);flex-shrink:0"></div>B안 공유거점</div>
+      <div class="legend-row"><div class="legend-line" style="background:var(--policy-c);height:6px"></div>C안 확장구간</div>
+    </div>
+
+    <!-- Bottom KPI chips -->
+    <div class="map-kpi-bar">
+      <div class="map-kpi-chip">
+        <div class="map-kpi-label">일평균 통행량</div>
+        <div class="map-kpi-row">
+          <span class="map-kpi-current" style="color:var(--text-secondary)">48.2<small style="font-size:11px">만</small></span>
+          <span class="map-kpi-arrow">→</span>
+          <span class="map-kpi-sim" style="color:var(--accent-cyan)">54.7<small style="font-size:11px">만</small></span>
+        </div>
+        <div class="map-kpi-delta neg">▲ +13.5% 예상</div>
+      </div>
+      <div class="map-kpi-chip">
+        <div class="map-kpi-label">평균 혼잡도 (V/C)</div>
+        <div class="map-kpi-row">
+          <span class="map-kpi-current" style="color:var(--text-secondary)">0.78</span>
+          <span class="map-kpi-arrow">→</span>
+          <span class="map-kpi-sim" style="color:var(--accent-amber)">0.89</span>
+        </div>
+        <div class="map-kpi-delta neg">▲ +0.11 악화</div>
+      </div>
+      <div class="map-kpi-chip">
+        <div class="map-kpi-label">대중교통 접근성</div>
+        <div class="map-kpi-row">
+          <span class="map-kpi-current" style="color:var(--text-secondary)">72.4</span>
+          <span class="map-kpi-arrow">→</span>
+          <span class="map-kpi-sim" style="color:var(--accent-green)">78.1</span>
+        </div>
+        <div class="map-kpi-delta pos">▲ +5.7 개선</div>
+      </div>
+      <div class="map-kpi-chip">
+        <div class="map-kpi-label">투자효과 (B/C)</div>
+        <div class="map-kpi-row">
+          <span class="map-kpi-sim" style="color:var(--accent-purple)">1.42</span>
+        </div>
+        <div class="map-kpi-delta pos">✓ 투자 적합</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="rpanel-toggle" id="rpToggle"><i class="ri-arrow-right-s-line"></i></div>
+  <aside class="right-panel" id="rightPanel">
+
+    <!-- VIEW: Simulation -->
+    <div id="viewSimulation">
+      <div class="rp-section">
+        <div class="rp-section-header">
+          <div class="rp-section-title"><i class="ri-line-chart-line"></i> Traffic Increment</div>
+          <span class="rp-badge" style="background:rgba(139,92,246,.12);color:var(--accent-purple)">시뮬레이션</span>
+        </div>
+        <div class="chart-box">
+          <div class="chart-box-header">
+            <span class="chart-box-title">시간대별 통행량 비교</span>
+          </div>
+          <div class="chart-body tall" id="chartTraffic"></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-box-header">
+            <span class="chart-box-title">역별 이동수단·혼잡도 (Small Multiple)</span>
+          </div>
+          <div class="chart-body small-multiples" id="chartModeSmallMulti"></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-box-header">
+            <span class="chart-box-title">수단 분담률 변화</span>
+            <div class="chart-box-tabs">
+              <button class="chart-box-tab active">현재</button>
+              <button class="chart-box-tab">A안</button>
+              <button class="chart-box-tab">B안</button>
+            </div>
+          </div>
+          <div class="chart-body" id="chartMode"></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-box-header"><span class="chart-box-title">투자 대비 효과 (ROI)</span></div>
+          <div class="chart-body tall" id="chartROI"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: Comparison -->
+    <div id="viewComparison" style="display:none">
+      <div class="rp-section">
+        <div class="rp-section-header">
+          <div class="rp-section-title"><i class="ri-bar-chart-grouped-line"></i> 정책 3안 비교</div>
+        </div>
+        <div class="policy-compare-row">
+          <div class="policy-compare-card" data-p="A">
+            <div class="pc-name" data-p="A">A안</div>
+            <div class="pc-row"><span>혼잡도</span><span class="pc-val" style="color:var(--accent-green)">-12%</span></div>
+            <div class="pc-row"><span>접근성</span><span class="pc-val" style="color:var(--accent-green)">+8.2</span></div>
+            <div class="pc-row"><span>비용</span><span class="pc-val">120억</span></div>
+            <div class="pc-row"><span>B/C</span><span class="pc-val" style="color:var(--accent-green)">1.62</span></div>
+            <div class="pc-row"><span>기간</span><span class="pc-val">12개월</span></div>
+          </div>
+          <div class="policy-compare-card" data-p="B">
+            <div class="pc-name" data-p="B">B안</div>
+            <div class="pc-row"><span>혼잡도</span><span class="pc-val" style="color:var(--accent-green)">-8%</span></div>
+            <div class="pc-row"><span>접근성</span><span class="pc-val" style="color:var(--accent-green)">+5.4</span></div>
+            <div class="pc-row"><span>비용</span><span class="pc-val">80억</span></div>
+            <div class="pc-row"><span>B/C</span><span class="pc-val" style="color:var(--accent-green)">1.45</span></div>
+            <div class="pc-row"><span>기간</span><span class="pc-val">6개월</span></div>
+          </div>
+          <div class="policy-compare-card" data-p="C">
+            <div class="pc-name" data-p="C">C안</div>
+            <div class="pc-row"><span>혼잡도</span><span class="pc-val" style="color:var(--accent-green)">-18%</span></div>
+            <div class="pc-row"><span>접근성</span><span class="pc-val" style="color:var(--accent-green)">+3.1</span></div>
+            <div class="pc-row"><span>비용</span><span class="pc-val">280억</span></div>
+            <div class="pc-row"><span>B/C</span><span class="pc-val" style="color:var(--accent-amber)">0.98</span></div>
+            <div class="pc-row"><span>기간</span><span class="pc-val">24개월</span></div>
+          </div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-box-header"><span class="chart-box-title">다축 비교 레이더</span></div>
+          <div class="chart-body tall" id="chartRadar"></div>
+        </div>
+      </div>
+      <div class="rp-section">
+        <div class="rp-section-header">
+          <div class="rp-section-title"><i class="ri-grid-line"></i> 실행 전략 우선순위</div>
+        </div>
+        <div class="matrix-mini">
+          <div class="matrix-cell q1">
+            <div class="matrix-cell-label">Quick Win</div>
+            <div class="matrix-tag"><div class="matrix-dot" style="background:var(--policy-b)"></div>공유 거점 확대</div>
+            <div class="matrix-tag"><div class="matrix-dot" style="background:var(--policy-a)"></div>버스 노선 조정</div>
+          </div>
+          <div class="matrix-cell q2">
+            <div class="matrix-cell-label">Strategic</div>
+            <div class="matrix-tag"><div class="matrix-dot" style="background:var(--policy-a)"></div>환승센터 구축</div>
+            <div class="matrix-tag"><div class="matrix-dot" style="background:var(--policy-c)"></div>도로 확장</div>
+          </div>
+          <div class="matrix-cell q3">
+            <div class="matrix-cell-label">Fill-In</div>
+            <div class="matrix-tag"><div class="matrix-dot" style="background:var(--policy-b)"></div>안내 시스템</div>
+          </div>
+          <div class="matrix-cell q4">
+            <div class="matrix-cell-label">Re-think</div>
+            <div class="matrix-tag"><div class="matrix-dot" style="background:var(--policy-c)"></div>지하주차장 신설</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: KPI -->
+    <div id="viewKPI" style="display:none">
+      <div class="rp-section">
+        <div class="rp-section-header">
+          <div class="rp-section-title"><i class="ri-dashboard-3-line"></i> 운영 KPI Framework</div>
+        </div>
+        <table class="kpi-mini-table">
+          <thead><tr><th>KPI</th><th>현재</th><th>목표</th><th>달성</th><th>진행</th></tr></thead>
+          <tbody>
+            <tr><td class="kn">혼잡도(V/C)</td><td>0.78</td><td style="color:var(--accent-green)">≤0.65</td><td style="font-weight:700;color:var(--accent-amber)">68%</td><td><div class="kpi-bar-sm"><div class="kpi-bar-fill" style="width:68%;background:var(--accent-amber)"></div></div></td></tr>
+            <tr><td class="kn">피크 평균속도</td><td>18km/h</td><td style="color:var(--accent-green)">≥25</td><td style="font-weight:700;color:var(--accent-amber)">72%</td><td><div class="kpi-bar-sm"><div class="kpi-bar-fill" style="width:72%;background:var(--accent-amber)"></div></div></td></tr>
+            <tr><td class="kn">보행 연속성</td><td>72.4</td><td style="color:var(--accent-green)">≥85</td><td style="font-weight:700;color:var(--accent-green)">85%</td><td><div class="kpi-bar-sm"><div class="kpi-bar-fill" style="width:85%;background:var(--accent-green)"></div></div></td></tr>
+            <tr><td class="kn">대중교통 분담률</td><td>42%</td><td style="color:var(--accent-green)">≥55%</td><td style="font-weight:700;color:var(--accent-amber)">76%</td><td><div class="kpi-bar-sm"><div class="kpi-bar-fill" style="width:76%;background:var(--accent-amber)"></div></div></td></tr>
+            <tr><td class="kn">공유 이용률</td><td>8.2%</td><td style="color:var(--accent-green)">≥15%</td><td style="font-weight:700;color:var(--accent-red)">55%</td><td><div class="kpi-bar-sm"><div class="kpi-bar-fill" style="width:55%;background:var(--accent-red)"></div></div></td></tr>
+            <tr><td class="kn">이동편의 체감</td><td>64점</td><td style="color:var(--accent-green)">≥75</td><td style="font-weight:700;color:var(--accent-green)">85%</td><td><div class="kpi-bar-sm"><div class="kpi-bar-fill" style="width:85%;background:var(--accent-green)"></div></div></td></tr>
+            <tr><td class="kn">B/C ratio</td><td>—</td><td style="color:var(--accent-green)">≥1.2</td><td style="font-weight:700;color:var(--accent-green)">100%</td><td><div class="kpi-bar-sm"><div class="kpi-bar-fill" style="width:100%;background:var(--accent-green)"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="rp-section">
+        <div class="rp-section-header">
+          <div class="rp-section-title"><i class="ri-line-chart-line"></i> KPI 월간 추이</div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-body tall" id="chartKPITrend"></div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<div class="d3-tooltip" id="tooltip"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+// ===========================
+// TOOLTIP
+// ===========================
+const tooltip = d3.select('#tooltip');
+function showTip(e,l,v){ tooltip.style('visibility','visible').html(`<div class="tip-label">${l}</div><div class="tip-value">${v}</div>`).style('top',(e.pageY-40)+'px').style('left',(e.pageX+12)+'px'); }
+function moveTip(e){ tooltip.style('top',(e.pageY-40)+'px').style('left',(e.pageX+12)+'px'); }
+function hideTip(){ tooltip.style('visibility','hidden'); }
+
+// ===========================
+// MAP SETUP
+// ===========================
+const SEONGSU = [37.5445, 127.0560];
+const map = L.map('map',{ center:SEONGSU, zoom:15, zoomControl:false, attributionControl:false });
+L.control.zoom({position:'bottomright'}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(map);
+
+function vcColor(vc){ return vc>=1?'#991b1b':vc>=.8?'#ef4444':vc>=.5?'#f59e0b':'#10b981'; }
+
+// Current road segments
+const roads = [
+  {c:[[37.5420,127.0530],[37.5445,127.0560]],vc:0.92,name:'성수대교'},
+  {c:[[37.5445,127.0560],[37.5467,127.0520]],vc:0.78,name:'성수이로'},
+  {c:[[37.5467,127.0520],[37.5476,127.0430]],vc:0.85,name:'뚝섬로'},
+  {c:[[37.5476,127.0430],[37.5510,127.0490]],vc:0.65,name:'서울숲길'},
+  {c:[[37.5510,127.0490],[37.5485,127.0648]],vc:0.45,name:'서울숲역길'},
+  {c:[[37.5445,127.0560],[37.5485,127.0648]],vc:0.55,name:'성수역~서울숲'},
+  {c:[[37.5445,127.0560],[37.5430,127.0580]],vc:0.88,name:'아차산로'},
+  {c:[[37.5430,127.0580],[37.5435,127.0610]],vc:0.71,name:'왕십리로'},
+];
+
+// Simulated (after policy) - VC changes
+const roadsSim = roads.map(r => ({...r, vcSim: Math.max(0.3, r.vc - 0.08 - Math.random()*0.1) }));
+
+// Diff colors
+function diffColor(curr, sim){
+  const d = sim - curr;
+  if (d < -0.1) return '#10b981';
+  if (d < 0) return '#f59e0b';
+  return '#ef4444';
+}
+
+// Map layers
+const layers = {
+  roads: L.layerGroup(),
+  roadsSim: L.layerGroup(),
+  roadsDiff: L.layerGroup(),
+  policyA: L.layerGroup(),
+  policyB: L.layerGroup(),
+  policyC: L.layerGroup(),
+  impact: L.layerGroup(),
+};
+
+// Current roads
+roads.forEach(r => {
+  L.polyline(r.c,{color:vcColor(r.vc),weight:6,opacity:.8,lineCap:'round'})
+    .bindPopup(`<b>${r.name}</b><br>V/C: ${r.vc}`)
+    .addTo(layers.roads);
+});
+
+// Simulated roads
+roadsSim.forEach(r => {
+  L.polyline(r.c,{color:vcColor(r.vcSim),weight:6,opacity:.8,lineCap:'round'})
+    .bindPopup(`<b>${r.name}</b><br>현재 V/C: ${r.vc} → 시뮬레이션: ${r.vcSim.toFixed(2)}`)
+    .addTo(layers.roadsSim);
+});
+
+// Diff roads
+roadsSim.forEach(r => {
+  L.polyline(r.c,{color:diffColor(r.vc, r.vcSim),weight:7,opacity:.85,lineCap:'round'})
+    .bindPopup(`<b>${r.name}</b><br>변화: ${(r.vcSim-r.vc).toFixed(2)} (${r.vc}→${r.vcSim.toFixed(2)})`)
+    .addTo(layers.roadsDiff);
+});
+
+// Policy A: New bus routes (dashed blue lines)
+const busRouteA = [
+  [[37.5420,127.0530],[37.5445,127.0560],[37.5467,127.0520],[37.5510,127.0490]],
+  [[37.5445,127.0560],[37.5485,127.0648],[37.5500,127.0700]],
+];
+busRouteA.forEach(coords => {
+  L.polyline(coords,{color:vcColor(0),weight:4,opacity:.7,dashArray:'10,8',lineCap:'round'})
+    .bindPopup('<b>A안</b> 신규 버스 노선')
+    .addTo(layers.policyA);
+  // Bus stop markers
+  coords.forEach(c => {
+    const icon = L.divIcon({className:'sim-marker',html:`<div class="sim-marker-inner" style="width:14px;height:14px;background:var(--policy-a)"><i class="ri-bus-line" style="font-size:8px"></i></div>`,iconSize:[14,14],iconAnchor:[7,7]});
+    L.marker(c,{icon}).addTo(layers.policyA);
+  });
+});
+
+// Policy B: Shared mobility stations (green circles)
+const bikeStations = [
+  [37.5455,127.0540],[37.5440,127.0500],[37.5470,127.0480],
+  [37.5490,127.0530],[37.5465,127.0600],[37.5500,127.0460],
+  [37.5435,127.0570],[37.5480,127.0620],[37.5450,127.0450],
+  [37.5415,127.0555],[37.5425,127.0510],[37.5495,127.0580],
+  [37.5510,127.0520],[37.5475,127.0560],[37.5460,127.0640],
+];
+bikeStations.forEach((pos,i) => {
+  const isNew = i >= 6;
+  const icon = L.divIcon({
+    className:'sim-marker',
+    html:`<div style="position:relative">
+      ${isNew ? `<div class="sim-marker-pulse" style="width:28px;height:28px;background:rgba(16,185,129,.3);top:-6px;left:-6px"></div>` : ''}
+      <div class="sim-marker-inner" style="width:16px;height:16px;background:${isNew?'var(--policy-b)':'#065f46'}"><i class="ri-riding-line" style="font-size:9px"></i></div>
+    </div>`,
+    iconSize:[16,16],iconAnchor:[8,8]
+  });
+  L.marker(pos,{icon}).bindPopup(`<b>${isNew?'신규':'기존'} 공유 거점</b>`).addTo(layers.policyB);
+});
+
+// Policy C: Road expansion (thick amber lines)
+const expansionRoads = [
+  {c:[[37.5420,127.0530],[37.5445,127.0560]],name:'성수대교 확장'},
+  {c:[[37.5467,127.0520],[37.5476,127.0430]],name:'뚝섬로 확장'},
+];
+expansionRoads.forEach(r => {
+  L.polyline(r.c,{color:'var(--policy-c)',weight:12,opacity:.3,lineCap:'round'}).addTo(layers.policyC);
+  L.polyline(r.c,{color:'var(--policy-c)',weight:4,opacity:.9,lineCap:'round'})
+    .bindPopup(`<b>C안</b> ${r.name}`).addTo(layers.policyC);
+});
+
+// Impact zones (purple circles)
+const impactZones = [
+  {pos:[37.5445,127.0560],r:350,label:'성수역 영향권'},
+  {pos:[37.5476,127.0430],r:300,label:'뚝섬역 영향권'},
+  {pos:[37.5485,127.0648],r:280,label:'서울숲역 영향권'},
+];
+impactZones.forEach(z => {
+  L.circle(z.pos,{radius:z.r,color:'rgba(139,92,246,.4)',fillColor:'rgba(139,92,246,.08)',fillOpacity:1,weight:1,dashArray:'6,4'})
+    .bindPopup(`<b>${z.label}</b><br>반경 ${z.r}m`).addTo(layers.impact);
+});
+
+// Subway station markers
+[{p:[37.5445,127.0560],n:'성수역'},{p:[37.5476,127.0430],n:'뚝섬역'},{p:[37.5485,127.0648],n:'서울숲역'}].forEach(s=>{
+  const icon = L.divIcon({className:'sim-marker',html:`<div style="position:relative"><div class="sim-marker-pulse" style="width:30px;height:30px;background:rgba(16,185,129,.25);top:-7px;left:-7px"></div><div class="sim-marker-inner" style="width:20px;height:20px;background:var(--accent-green)"><i class="ri-subway-line" style="font-size:11px"></i></div></div>`,iconSize:[20,20],iconAnchor:[10,10]});
+  L.marker(s.p,{icon}).bindPopup(`<b>${s.n}</b>`).addTo(map);
+});
+
+// Default: show current + policies
+layers.roads.addTo(map);
+layers.policyA.addTo(map);
+layers.policyB.addTo(map);
+layers.impact.addTo(map);
+
+let currentMapMode = 'current';
+
+// Map mode toggle
+document.querySelectorAll('.map-toggle-btn').forEach(btn => {
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.map-toggle-btn').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+    currentMapMode = this.dataset.mode;
+    map.removeLayer(layers.roads);
+    map.removeLayer(layers.roadsSim);
+    map.removeLayer(layers.roadsDiff);
+    if (currentMapMode==='current') layers.roads.addTo(map);
+    else if (currentMapMode==='simulated') layers.roadsSim.addTo(map);
+    else layers.roadsDiff.addTo(map);
+  });
+});
+
+// Layer toggles
+document.querySelectorAll('.map-layer-item').forEach(item => {
+  item.addEventListener('click', function(){
+    const toggle = this.querySelector('.map-layer-toggle');
+    toggle.classList.toggle('on');
+    const ly = this.dataset.ly;
+    if (ly==='roads') {
+      if (toggle.classList.contains('on')) {
+        if (currentMapMode==='current') layers.roads.addTo(map);
+        else if (currentMapMode==='simulated') layers.roadsSim.addTo(map);
+        else layers.roadsDiff.addTo(map);
+      } else {
+        map.removeLayer(layers.roads); map.removeLayer(layers.roadsSim); map.removeLayer(layers.roadsDiff);
+      }
+    } else if (layers[ly]) {
+      if (toggle.classList.contains('on')) layers[ly].addTo(map);
+      else map.removeLayer(layers[ly]);
+    }
+  });
+});
+
+// ===========================
+// D3 CHARTS
+// ===========================
+const hours = Array.from({length:24},(_,i)=>i);
+// 대안별로 변곡점·피크 패턴을 다르게 생성 (A: 이른 피크, B: 넓은 피크, C: 급격한 피크)
+function genT(base,pm,pe,peakShift=0){ return hours.map(h=>{ let v=base; if(h>=7+peakShift&&h<=9+peakShift)v+=pm*Math.sin((h-7-peakShift)/2*Math.PI); if(h>=17+peakShift&&h<=19+peakShift)v+=pe*Math.sin((h-17-peakShift)/2*Math.PI); if(h>=11&&h<=14)v+=base*.3; return{hour:h,value:Math.round(v+Math.random()*1500)}; }); }
+function genTFlat(base,pm,pe){ return hours.map(h=>{ let v=base; if(h>=6&&h<=10)v+=pm*(0.3+0.7*Math.sin((h-6)/4*Math.PI)); if(h>=16&&h<=20)v+=pe*(0.3+0.7*Math.sin((h-16)/4*Math.PI)); return{hour:h,value:Math.round(v+Math.random()*1200)}; }); }
+function genTSharp(base,pm,pe){ return hours.map(h=>{ let v=base; if(h===8)v+=pm*1.1; else if(h>=7&&h<=9)v+=pm*Math.pow(Math.sin((h-7)/2*Math.PI),0.6); if(h===18)v+=pe*1.05; else if(h>=17&&h<=19)v+=pe*Math.pow(Math.sin((h-17)/2*Math.PI),0.5); return{hour:h,value:Math.round(v+Math.random()*800)}; }); }
+const tCur=genT(15000,18000,16000);
+const tA=genT(14000,15000,13500,-0.5);  // A안: 피크가 30분 앞당겨짐
+const tB=genTFlat(14500,14000,13000);   // B안: 넓고 부드러운 피크
+const tC=genTSharp(13000,16000,15000);  // C안: 좁고 급격한 피크
+
+function drawTraffic(){
+  const el=document.getElementById('chartTraffic'); if(!el)return;
+  const{width:W,height:H}=el.getBoundingClientRect();
+  const m={top:8,right:10,bottom:26,left:38};
+  d3.select(el).selectAll('*').remove();
+  const svg=d3.select(el).append('svg').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const iw=W-m.left-m.right, ih=H-m.top-m.bottom;
+  const x=d3.scaleLinear().domain([0,23]).range([0,iw]);
+  const allV=[...tCur,...tA,...tB,...tC].map(d=>d.value);
+  const y=d3.scaleLinear().domain([0,d3.max(allV)*1.05]).range([ih,0]);
+  g.append('g').attr('transform',`translate(0,${ih})`).call(d3.axisBottom(x).ticks(6).tickFormat(d=>d+'시')).selectAll('text').style('font-size','8px').style('fill','#64748b');
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d3.format('.2s'))).selectAll('text').style('font-size','8px').style('fill','#64748b');
+  g.selectAll('.domain').remove();
+  const ar=d3.area().x(d=>x(d.hour)).y0(ih).y1(d=>y(d.value)).curve(d3.curveMonotoneX);
+  g.append('path').datum(tCur).attr('fill','rgba(100,116,139,.06)').attr('d',ar);
+  // 대안별로 다른 curve로 변곡점 양상 차이
+  const series=[{d:tCur,c:'#64748b',w:1.5,da:'4,3',curve:d3.curveMonotoneX},{d:tA,c:'#3b82f6',w:2,da:'',curve:d3.curveCardinal.tension(0.3)},{d:tB,c:'#10b981',w:2,da:'',curve:d3.curveBasis},{d:tC,c:'#f59e0b',w:2,da:'',curve:d3.curveStepAfter}];
+  series.forEach(s=>{
+    const ln=d3.line().x(d=>x(d.hour)).y(d=>y(d.value)).curve(s.curve);
+    g.append('path').datum(s.d).attr('fill','none').attr('stroke',s.c).attr('stroke-width',s.w).attr('stroke-dasharray',s.da).attr('d',ln);
+  });
+  const leg=svg.append('g').attr('transform',`translate(${W-130},6)`);
+  [{l:'현재',c:'#64748b'},{l:'A안',c:'#3b82f6'},{l:'B안',c:'#10b981'},{l:'C안',c:'#f59e0b'}].forEach((s,i)=>{
+    leg.append('line').attr('x1',0).attr('x2',12).attr('y1',i*12+3).attr('y2',i*12+3).attr('stroke',s.c).attr('stroke-width',2);
+    leg.append('text').attr('x',16).attr('y',i*12+6).text(s.l).style('font-size','8px').style('fill','#94a3b8');
+  });
+}
+
+// 역별 이동수단·혼잡도 Small Multiple (4개 차트 각각 상이한 양상)
+function drawModeSmallMulti(){
+  const el=document.getElementById('chartModeSmallMulti'); if(!el)return;
+  const{width:W,height:H}=el.getBoundingClientRect();
+  d3.select(el).selectAll('*').remove();
+  const n=4;
+  const pad=4, cellH=(H-pad*(n-1))/n;
+  const m={top:6,right:6,bottom:18,left:36};
+  const iw=W-m.left-m.right, ih=cellH-m.top-m.bottom;
+  const modes=[{k:'지하철',c:'#3b82f6'},{k:'버스',c:'#10b981'},{k:'도보',c:'#f59e0b'},{k:'공유',c:'#8b5cf6'}];
+  // 차트별·수단별 완전히 다른 그래프 양상 (4차트 × 4수단)
+  const chartModeFns=[
+    [ (h)=>0.2+0.5*Math.exp(-Math.pow(h-7.5,2)/1.2)+0.45*Math.exp(-Math.pow(h-18,2)/1), (h)=>0.18+0.4*Math.sin(Math.max(0,Math.min(1,(h-7.5)/2.5))*Math.PI)+0.35*Math.sin(Math.max(0,Math.min(1,(h-17.5)/2.5))*Math.PI), (h)=>0.22+0.25*Math.exp(-Math.pow(h-12,2)/2.5)+0.3*Math.exp(-Math.pow(h-18.5,2)/2.5), (h)=>0.1+0.15*Math.exp(-Math.pow(h-8,2)/2)+0.35*Math.exp(-Math.pow(h-15,2)/2)+0.4*Math.exp(-Math.pow(h-19.5,2)/2.2) ],
+    [ (h)=>0.35+0.55*Math.exp(-Math.pow(h-7.8,2)/0.8)+0.12*Math.exp(-Math.pow(h-12.5,2)/2), (h)=>0.15+0.35*Math.exp(-Math.pow(h-8.5,2)/1.5)+0.4*Math.exp(-Math.pow(h-18,2)/1.2), (h)=>0.08+0.2*Math.exp(-Math.pow(h-11,2)/3)+0.4*Math.exp(-Math.pow(h-17,2)/3)+0.1*Math.exp(-Math.pow(h-20,2)/2), (h)=>0.08+0.12*Math.exp(-Math.pow(h-9,2)/2)+0.45*Math.exp(-Math.pow(h-19,2)/2.5) ],
+    [ (h)=>0.12+0.3*Math.sin(Math.max(0,Math.min(1,(h-6)/5))*Math.PI)+0.28*Math.sin(Math.max(0,Math.min(1,(h-16)/6))*Math.PI), (h)=>0.1+0.25*Math.exp(-Math.pow(h-8,2)/2)+0.25*Math.exp(-Math.pow(h-18,2)/2.5), (h)=>0.28+0.2*Math.exp(-Math.pow(h-12.5,2)/2)+0.35*Math.exp(-Math.pow(h-18.5,2)/2.5), (h)=>0.2+0.22*Math.exp(-Math.pow(h-14,2)/2)+0.4*Math.exp(-Math.pow(h-20,2)/2.5) ],
+    [ (h)=>0.22+0.45*Math.exp(-Math.pow(h-7.5,2)/1)+0.5*Math.exp(-Math.pow(h-19,2)/1.5)+(h>=21?0.12:0), (h)=>0.2+0.38*Math.exp(-Math.pow(h-8,2)/1.2)+0.42*Math.exp(-Math.pow(h-18.5,2)/1.5)+(h>=20&&h<=23?0.1:0), (h)=>0.12+0.18*Math.exp(-Math.pow(h-12,2)/2)+0.4*Math.exp(-Math.pow(h-19,2)/3), (h)=>0.15+0.35*Math.exp(-Math.pow(h-15.5,2)/2)+0.45*Math.exp(-Math.pow(h-21,2)/2) ]
+  ];
+  function cellVal(cIdx,moIdx,h){ return Math.min(1,Math.max(0.05,chartModeFns[cIdx][moIdx](h))); }
+  const svg=d3.select(el).append('svg').attr('width',W).attr('height',H);
+  for(let i=0;i<n;i++){
+    const y0=i*(cellH+pad);
+    const g=svg.append('g').attr('transform',`translate(${m.left},${y0+m.top})`);
+    const x=d3.scaleLinear().domain([0,23]).range([0,iw]);
+    const y=d3.scaleLinear().domain([0,1]).range([ih,0]);
+    const data=modes.map((mo,j)=>hours.map(h=>({hour:h,val:cellVal(i,j,h),mode:mo.k})));
+    if(i===n-1){ g.append('g').attr('transform',`translate(0,${ih})`).call(d3.axisBottom(x).ticks(6).tickFormat(d=>d+'시')).selectAll('text').style('font-size','7px').style('fill','#64748b'); }
+    g.append('g').call(d3.axisLeft(y).ticks(3).tickFormat(d3.format('.0%'))).selectAll('text').style('font-size','7px').style('fill','#64748b');
+    g.selectAll('.domain').remove();
+    const ln=d3.line().x(d=>x(d.hour)).y(d=>y(d.val)).curve(d3.curveMonotoneX);
+    data.forEach((arr,j)=>{
+      g.append('path').datum(arr).attr('fill','none').attr('stroke',modes[j].c).attr('stroke-width',1.5).attr('opacity',0.9).attr('d',ln);
+    });
+  }
+  const leg=svg.append('g').attr('transform',`translate(${W-220},4)`);
+  modes.forEach((mo,i)=>{ const lx=i*55; leg.append('line').attr('x1',lx).attr('x2',lx+8).attr('y1',6).attr('y2',6).attr('stroke',mo.c).attr('stroke-width',2); leg.append('text').attr('x',lx+12).attr('y',9).text(mo.k).style('font-size','7px').style('fill','#94a3b8'); });
+}
+
+function drawMode(){
+  const el=document.getElementById('chartMode'); if(!el)return;
+  const{width:W,height:H}=el.getBoundingClientRect();
+  d3.select(el).selectAll('*').remove();
+  const svg=d3.select(el).append('svg').attr('width',W).attr('height',H);
+  const data=[{m:'승용차',v:38},{m:'지하철',v:28},{m:'버스',v:22},{m:'도보',v:8},{m:'공유',v:4}];
+  const colors=['#ef4444','#3b82f6','#10b981','#f59e0b','#8b5cf6'];
+  const radius=Math.min(W,H)/2-20;
+  const g=svg.append('g').attr('transform',`translate(${W/2},${H/2})`);
+  const pie=d3.pie().value(d=>d.v).sort(null).padAngle(.03);
+  const arc=d3.arc().innerRadius(radius*.52).outerRadius(radius);
+  const arcL=d3.arc().innerRadius(radius*.75).outerRadius(radius*.75);
+  g.selectAll('path').data(pie(data)).join('path').attr('d',arc).attr('fill',(_,i)=>colors[i]).attr('opacity',.85).attr('stroke','#0a0e1a').attr('stroke-width',2)
+    .on('mouseover',function(e,d){showTip(e,d.data.m,d.data.v+'%');d3.select(this).attr('opacity',1);}).on('mousemove',moveTip).on('mouseout',function(){hideTip();d3.select(this).attr('opacity',.85);});
+  g.selectAll('text').data(pie(data)).join('text').attr('transform',d=>`translate(${arcL.centroid(d)})`).attr('text-anchor','middle').attr('dy','.35em').text(d=>d.data.v>=8?d.data.m:'').style('font-size','9px').style('fill','#f1f5f9').style('font-weight','600');
+}
+
+function drawROI(){
+  const el=document.getElementById('chartROI'); if(!el)return;
+  const{width:W,height:H}=el.getBoundingClientRect();
+  const m={top:12,right:16,bottom:32,left:44};
+  d3.select(el).selectAll('*').remove();
+  const svg=d3.select(el).append('svg').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const iw=W-m.left-m.right, ih=H-m.top-m.bottom;
+  const data=[{n:'A안',cost:120,ben:194,bc:1.62,c:'#3b82f6'},{n:'B안',cost:80,ben:116,bc:1.45,c:'#10b981'},{n:'C안',cost:280,ben:274,bc:0.98,c:'#f59e0b'}];
+  const x=d3.scaleLinear().domain([0,320]).range([0,iw]);
+  const y=d3.scaleLinear().domain([0,220]).range([ih,0]);
+  g.append('g').attr('transform',`translate(0,${ih})`).call(d3.axisBottom(x).ticks(4).tickFormat(d=>d+'억')).selectAll('text').style('font-size','8px').style('fill','#64748b');
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>d+'억')).selectAll('text').style('font-size','8px').style('fill','#64748b');
+  g.selectAll('.domain').remove();
+  g.append('line').attr('x1',0).attr('y1',y(0)).attr('x2',x(320)).attr('y2',y(320)).attr('stroke','#64748b').attr('stroke-width',1).attr('stroke-dasharray','4,4').attr('opacity',.3);
+  svg.append('text').attr('x',W/2).attr('y',H-2).attr('text-anchor','middle').text('투자 비용').style('font-size','9px').style('fill','#64748b');
+  g.selectAll('circle').data(data).join('circle').attr('cx',d=>x(d.cost)).attr('cy',d=>y(d.ben)).attr('r',d=>14+d.bc*10).attr('fill',d=>d.c).attr('opacity',.2).attr('stroke',d=>d.c).attr('stroke-width',2)
+    .on('mouseover',function(e,d){showTip(e,d.n,`비용:${d.cost}억 / 편익:${d.ben}억 / B/C:${d.bc}`);}).on('mousemove',moveTip).on('mouseout',hideTip);
+  g.selectAll('text.lb').data(data).join('text').attr('class','lb').attr('x',d=>x(d.cost)).attr('y',d=>y(d.ben)).attr('text-anchor','middle').attr('dy','.35em').text(d=>`${d.n}(${d.bc})`).style('font-size','10px').style('fill','#f1f5f9').style('font-weight','700');
+}
+
+function drawRadar(){
+  const el=document.getElementById('chartRadar'); if(!el)return;
+  const{width:W,height:H}=el.getBoundingClientRect();
+  d3.select(el).selectAll('*').remove();
+  const svg=d3.select(el).append('svg').attr('width',W).attr('height',H);
+  const cx=W/2,cy=H/2,radius=Math.min(W,H)/2-32;
+  const axes=['혼잡도 개선','접근성','비용 효율','이행 속도','지속가능성'];
+  const n=axes.length, ang=(Math.PI*2)/n;
+  const rS=d3.scaleLinear().domain([0,1]).range([0,radius]);
+  for(let l=1;l<=5;l++){const r=(radius/5)*l;const pts=Array.from({length:n},(_,i)=>{const a=ang*i-Math.PI/2;return`${cx+r*Math.cos(a)},${cy+r*Math.sin(a)}`;}).join(' ');svg.append('polygon').attr('points',pts).attr('fill','none').attr('stroke','#1e2d4a');}
+  axes.forEach((_,i)=>{const a=ang*i-Math.PI/2;svg.append('line').attr('x1',cx).attr('y1',cy).attr('x2',cx+radius*Math.cos(a)).attr('y2',cy+radius*Math.sin(a)).attr('stroke','#1e2d4a');const lx=cx+(radius+18)*Math.cos(a),ly=cy+(radius+18)*Math.sin(a);svg.append('text').attr('x',lx).attr('y',ly).attr('text-anchor','middle').attr('dy','.35em').text(axes[i]).style('font-size','9px').style('fill','#94a3b8');});
+  const pols=[{v:[.82,.88,.78,.60,.85],c:'#3b82f6'},{v:[.68,.72,.85,.92,.80],c:'#10b981'},{v:[.90,.55,.42,.35,.50],c:'#f59e0b'}];
+  pols.forEach(p=>{const pts=p.v.map((v,i)=>{const a=ang*i-Math.PI/2;return`${cx+rS(v)*Math.cos(a)},${cy+rS(v)*Math.sin(a)}`;}).join(' ');svg.append('polygon').attr('points',pts).attr('fill',p.c+'20').attr('stroke',p.c).attr('stroke-width',2);p.v.forEach((v,i)=>{const a=ang*i-Math.PI/2;svg.append('circle').attr('cx',cx+rS(v)*Math.cos(a)).attr('cy',cy+rS(v)*Math.sin(a)).attr('r',3).attr('fill',p.c).attr('stroke','#0a0e1a').attr('stroke-width',1.5);});});
+}
+
+function drawKPITrend(){
+  const el=document.getElementById('chartKPITrend'); if(!el)return;
+  const{width:W,height:H}=el.getBoundingClientRect();
+  const m={top:10,right:10,bottom:24,left:34};
+  d3.select(el).selectAll('*').remove();
+  const svg=d3.select(el).append('svg').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const iw=W-m.left-m.right,ih=H-m.top-m.bottom;
+  const months=['9월','10월','11월','12월','1월','2월'];
+  const x=d3.scalePoint().domain(months).range([0,iw]).padding(.1);
+  const y=d3.scaleLinear().domain([0,100]).range([ih,0]);
+  g.append('g').attr('transform',`translate(0,${ih})`).call(d3.axisBottom(x).tickSize(0)).selectAll('text').style('font-size','8px').style('fill','#94a3b8');
+  g.append('g').call(d3.axisLeft(y).ticks(4)).selectAll('text').style('font-size','8px').style('fill','#64748b');
+  g.selectAll('.domain').remove();
+  const series=[{d:[68,69,70,71,72,73],c:'#10b981',l:'접근성'},{d:[52,58,64,71,76,82],c:'#8b5cf6',l:'공유×10'}];
+  const ln=d3.line().curve(d3.curveMonotoneX);
+  series.forEach(s=>{
+    g.append('path').datum(s.d).attr('fill','none').attr('stroke',s.c).attr('stroke-width',2).attr('d',ln.x((_,i)=>x(months[i])).y(d=>y(d)));
+    g.selectAll(`.c-${s.l}`).data(s.d).join('circle').attr('cx',(_,i)=>x(months[i])).attr('cy',d=>y(d)).attr('r',3).attr('fill',s.c).attr('stroke','#0a0e1a').attr('stroke-width',1.5);
+  });
+}
+
+function initCharts(){ drawTraffic(); drawModeSmallMulti(); drawMode(); drawROI(); drawRadar(); drawKPITrend(); }
+setTimeout(initCharts,300);
+window.addEventListener('resize',()=>{ setTimeout(()=>{map.invalidateSize();initCharts();},100); });
+
+// ===========================
+// INTERACTIONS
+// ===========================
+document.querySelectorAll('.header-tab').forEach(tab=>{
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.header-tab').forEach(t=>t.classList.remove('active'));
+    this.classList.add('active');
+    const v=this.dataset.view;
+    document.getElementById('viewSimulation').style.display=v==='simulation'?'block':'none';
+    document.getElementById('viewComparison').style.display=v==='comparison'?'block':'none';
+    document.getElementById('viewKPI').style.display=v==='kpi'?'block':'none';
+    setTimeout(initCharts,50);
+  });
+});
+
+document.querySelectorAll('.scenario-card').forEach(c=>{ c.addEventListener('click',function(){ this.classList.toggle('active'); }); });
+document.querySelectorAll('.policy-option').forEach(o=>{ o.addEventListener('click',function(){ this.classList.toggle('selected'); }); });
+
+document.getElementById('sHq').addEventListener('input',function(){ document.getElementById('vHq').textContent=parseInt(this.value).toLocaleString()+'명'; });
+document.getElementById('sCom').addEventListener('input',function(){ document.getElementById('vCom').textContent='+'+this.value+'%'; });
+document.getElementById('sMob').addEventListener('input',function(){ document.getElementById('vMob').textContent='+'+this.value+'개소'; });
+document.getElementById('sInf').addEventListener('input',function(){ document.getElementById('vInf').textContent=parseInt(this.value)+'억'; });
+
+document.getElementById('runBtn').addEventListener('click',function(){
+  const btn=this;
+  btn.innerHTML='<i class="ri-loader-4-line" style="animation:spin 1s linear infinite"></i> 실행 중...';
+  setTimeout(()=>{
+    btn.innerHTML='<i class="ri-check-line"></i> 완료';
+    // Switch to simulated view on map
+    document.querySelectorAll('.map-toggle-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelector('.map-toggle-btn[data-mode="simulated"]').classList.add('active');
+    map.removeLayer(layers.roads); layers.roadsSim.addTo(map);
+    setTimeout(initCharts,100);
+    setTimeout(()=>{ btn.innerHTML='<i class="ri-play-circle-line"></i> 시뮬레이션 실행'; },2000);
+  },1500);
+});
+
+const rpToggle=document.getElementById('rpToggle');
+const rPanel=document.getElementById('rightPanel');
+rpToggle.addEventListener('click',function(){
+  rPanel.classList.toggle('hidden');
+  this.classList.toggle('shifted');
+  this.querySelector('i').className=rPanel.classList.contains('hidden')?'ri-arrow-left-s-line':'ri-arrow-right-s-line';
+  setTimeout(()=>{map.invalidateSize();initCharts();},350);
+});
+
+document.querySelectorAll('.chart-box-tabs').forEach(tabs=>{
+  tabs.querySelectorAll('.chart-box-tab').forEach(tab=>{
+    tab.addEventListener('click',function(){ this.parentElement.querySelectorAll('.chart-box-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active'); });
+  });
+});
+</script>
+</body>
+</html>

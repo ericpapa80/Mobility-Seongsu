@@ -1,0 +1,23 @@
+# 지하철 출구별 시간대별 통행인원 조회 (latest 목요일 기준) (성수역 211, 뚝섬역 210, 서울숲역 K211, 건대입구역 212)
+curl -
+-request GET \
+--url 'https://apis.openapi.sk.com/puzzle/subway/exit/raw/hourly/stations/211?&date=latest' \
+--header 'appkey: eDCWqxFUTX5KSYOwGxVUL8IQYouQYHhk5GqqKOlp' 
+
+# 지하철 출구별 시간대별 통행인원 조회 (latest 목요일 기준) (성수역 211, 뚝섬역 210, 서울숲역 K211, 건대입구역 212) - Terminal 입력용
+# 성수역
+curl.exe -X GET "https://apis.openapi.sk.com/puzzle/subway/exit/raw/hourly/stations/211?&date=latest" -H "appkey: eDCWqxFUTX5KSYOwGxVUL8IQYouQYHhk5GqqKOlp"
+# 뚝섬역
+curl.exe -X GET "https://apis.openapi.sk.com/puzzle/subway/exit/raw/hourly/stations/210?&date=latest" -H "appkey: eDCWqxFUTX5KSYOwGxVUL8IQYouQYHhk5GqqKOlp"
+# 서울숲역
+curl.exe -X GET "https://apis.openapi.sk.com/puzzle/subway/exit/raw/hourly/stations/K211?&date=latest" -H "appkey: eDCWqxFUTX5KSYOwGxVUL8IQYouQYHhk5GqqKOlp"
+# 건대입구역
+curl.exe -X GET "https://apis.openapi.sk.com/puzzle/subway/exit/raw/hourly/stations/212?&date=latest" -H "appkey: eDCWqxFUTX5KSYOwGxVUL8IQYouQYHhk5GqqKOlp"
+
+
+# 통계성 혼잡도를 검색할 수 있는 지하철역 이름과 코드 정보 조회 
+curl --request GET \
+--url https://apis.openapi.sk.com/puzzle/subway/meta/stations?offset=0&limit=555 \
+--header 'appkey: eDCWqxFUTX5KSYOwGxVUL8IQYouQYHhk5GqqKOlp' 
+
+

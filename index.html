@@ -1,0 +1,2703 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>성수 모빌리티 진단 대시보드</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a2236;
+  --bg-card-hover: #1f2a42;
+  --bg-input: #0d1322;
+  --border: #1e2d4a;
+  --border-active: #3b82f6;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-green: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #8b5cf6;
+  --accent-pink: #ec4899;
+  --gradient-blue: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  --gradient-green: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-amber: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-red: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --sidebar-width: 260px;
+  --header-height: 56px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Pretendard', 'Inter', -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.header {
+  height: var(--header-height);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--gradient-blue);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.logo-text {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.logo-badge {
+  font-size: 10px;
+  background: var(--accent-blue);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-tab {
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  background: none;
+}
+
+.header-tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+.header-tab.active { color: white; background: var(--accent-blue); }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.header-btn:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+.header-btn.admin { border-color: var(--accent-purple); color: var(--accent-purple); }
+.header-btn.admin.active { background: var(--accent-purple); color: white; }
+
+.period-select {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--header-height));
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 900;
+  overflow-y: auto;
+}
+
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.sidebar-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.kpi-card:hover { border-color: var(--border-active); transform: translateY(-1px); }
+
+.kpi-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.kpi-value {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.kpi-change {
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.kpi-change.up { color: var(--accent-red); }
+.kpi-change.down { color: var(--accent-green); }
+.kpi-change.neutral { color: var(--text-muted); }
+
+/* Layer Controls */
+.layer-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 2px;
+}
+
+.layer-item:hover { background: rgba(255,255,255,0.03); }
+
+.layer-toggle {
+  width: 36px; height: 20px;
+  background: var(--bg-input);
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.3s;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.layer-toggle::after {
+  content: '';
+  width: 16px; height: 16px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  position: absolute;
+  top: 1px; left: 1px;
+  transition: all 0.3s;
+}
+
+.layer-toggle.active { background: var(--accent-blue); border-color: var(--accent-blue); }
+.layer-toggle.active::after { left: 17px; background: white; }
+
+.layer-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.layer-name {
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+/* Safety Index */
+.safety-gauge {
+  position: relative;
+  width: 100%;
+  padding: 16px 0;
+}
+
+.gauge-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+  position: relative;
+}
+
+.gauge-marker {
+  position: absolute;
+  top: -4px;
+  width: 16px; height: 16px;
+  background: white;
+  border: 3px solid var(--bg-secondary);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: var(--shadow-md);
+  transition: left 0.5s ease;
+}
+
+.gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.safety-score {
+  text-align: center;
+  margin-top: 12px;
+}
+
+.safety-score-value {
+  font-size: 36px;
+  font-weight: 800;
+  background: var(--gradient-blue);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.safety-score-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  margin-left: var(--sidebar-width);
+  margin-top: var(--header-height);
+  height: calc(100vh - var(--header-height));
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Map Container */
+.map-container {
+  flex: 1;
+  position: relative;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-primary);
+}
+
+.leaflet-container { background: var(--bg-primary) !important; }
+
+/* Map Overlays */
+.map-overlay-top {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 800;
+  pointer-events: none;
+}
+
+.map-overlay-top > * { pointer-events: auto; }
+
+.map-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 8px 16px;
+  width: 320px;
+  box-shadow: var(--shadow-lg);
+}
+
+.map-search i { color: var(--text-muted); font-size: 16px; }
+
+.map-search input {
+  flex: 1;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.map-search input::placeholder { color: var(--text-muted); }
+
+.map-legend {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-lg);
+  min-width: 180px;
+}
+
+.map-legend-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.legend-color {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-gradient {
+  height: 10px;
+  border-radius: 3px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Time Slider */
+.time-slider-panel {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 800;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-lg);
+}
+
+.time-slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.time-slider-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-current {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.time-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.time-btn {
+  width: 30px; height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.time-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+.time-btn.active { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+
+.time-slider-track {
+  position: relative;
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.time-slider-bg {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-input);
+  border-radius: 3px;
+  position: relative;
+  cursor: pointer;
+}
+
+.time-slider-fill {
+  height: 100%;
+  background: var(--gradient-blue);
+  border-radius: 3px;
+  width: 33%;
+  transition: width 0.3s;
+}
+
+.time-slider-thumb {
+  position: absolute;
+  top: 50%;
+  left: 33%;
+  transform: translate(-50%, -50%);
+  width: 18px; height: 18px;
+  background: white;
+  border: 3px solid var(--accent-blue);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 0 10px rgba(59,130,246,0.4);
+  z-index: 2;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: transparent;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  z-index: 3;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  background: white;
+  border: 3px solid var(--accent-blue);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 0 10px rgba(59,130,246,0.4);
+}
+
+.time-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.time-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.time-label.peak { color: var(--accent-amber); font-weight: 700; }
+
+/* ===== RIGHT PANEL ===== */
+.right-panel {
+  position: fixed;
+  top: var(--header-height);
+  right: 0;
+  width: 380px;
+  height: calc(100vh - var(--header-height));
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border);
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+}
+
+.right-panel.hidden { transform: translateX(100%); }
+
+.right-panel::-webkit-scrollbar { width: 4px; }
+.right-panel::-webkit-scrollbar-track { background: transparent; }
+.right-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.panel-toggle {
+  position: fixed;
+  right: 380px;
+  top: calc(var(--header-height) + 16px);
+  width: 28px; height: 56px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 801;
+  color: var(--text-muted);
+  transition: all 0.3s;
+}
+
+.panel-toggle:hover { color: var(--text-primary); }
+.panel-toggle.shifted { right: 0; }
+
+.panel-section {
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.panel-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-section-title i { color: var(--accent-blue); font-size: 16px; }
+
+.panel-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.panel-badge.live { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+.panel-badge.warning { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+.panel-badge.danger { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+
+/* Charts */
+.chart-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.chart-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.chart-tab {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: all 0.2s;
+}
+
+.chart-tab.active { background: var(--accent-blue); color: white; }
+
+.chart-body {
+  height: 160px;
+  position: relative;
+}
+
+.chart-body.small { height: 120px; }
+.chart-body.large { height: 200px; }
+
+/* Radar Chart */
+.radar-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.radar-chart { width: 160px; height: 160px; flex-shrink: 0; }
+
+.radar-metrics {
+  flex: 1;
+}
+
+.radar-metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.radar-metric-name {
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.radar-metric-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+
+.radar-metric-value {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* OD Flow Diagram */
+.od-flow-container {
+  position: relative;
+}
+
+.od-pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+}
+
+.od-zone {
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 60px;
+}
+
+.od-zone.origin { color: var(--accent-cyan); text-align: right; }
+.od-zone.dest { color: var(--accent-pink); }
+
+.od-arrow {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.od-arrow-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--gradient-blue);
+}
+
+.od-value {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 50px;
+  text-align: right;
+}
+
+/* Risk Items */
+.risk-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+
+.risk-item:hover { border-color: var(--accent-amber); }
+
+.risk-icon {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.risk-icon.construction { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+.risk-icon.event { background: rgba(139,92,246,0.15); color: var(--accent-purple); }
+.risk-icon.accident { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+
+.risk-content { flex: 1; }
+
+.risk-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.risk-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.risk-impact {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.risk-impact.high { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+.risk-impact.mid { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+.risk-impact.low { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+
+/* Comparison Panel */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.compare-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+}
+
+.compare-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.compare-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.compare-sub {
+  font-size: 10px;
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+/* D3 SVG styles */
+.d3-chart svg {
+  width: 100%;
+  height: 100%;
+}
+
+.d3-chart text {
+  font-family: 'Pretendard', 'Inter', sans-serif;
+  fill: var(--text-muted);
+}
+
+.d3-chart .domain { stroke: var(--border); }
+.d3-chart .tick line { stroke: var(--border); opacity: 0.5; }
+.d3-chart .grid line { stroke: var(--border); opacity: 0.15; }
+
+/* Tooltip */
+.d3-tooltip {
+  position: absolute;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text-primary);
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+.d3-tooltip .tip-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.d3-tooltip .tip-value {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Map info cards */
+.map-info-card {
+  position: absolute;
+  top: 16px;
+  left: 350px;
+  z-index: 800;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.map-info-card > * { pointer-events: auto; }
+
+.info-chip {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-md);
+  font-size: 12px;
+}
+
+.info-chip-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.info-chip-value {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* Data Source Monitor */
+.source-summary {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.source-summary-item {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.source-summary-label {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.source-summary-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.source-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.source-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+}
+
+.source-row:hover { background: rgba(255,255,255,0.03); }
+
+.source-status {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.source-status.ok { background: var(--accent-green); box-shadow: 0 0 6px rgba(16,185,129,0.4); }
+.source-status.delayed { background: var(--accent-amber); box-shadow: 0 0 6px rgba(245,158,11,0.4); animation: pulse 2s infinite; }
+.source-status.error { background: var(--accent-red); box-shadow: 0 0 6px rgba(239,68,68,0.4); animation: pulse 1.5s infinite; }
+
+.source-info { flex: 1; min-width: 0; }
+
+.source-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.source-meta {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.source-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.source-badge.ok { background: rgba(16,185,129,0.12); color: var(--accent-green); }
+.source-badge.delayed { background: rgba(245,158,11,0.12); color: var(--accent-amber); }
+.source-badge.error { background: rgba(239,68,68,0.12); color: var(--accent-red); }
+
+/* Loading Animation */
+.loading-bar {
+  height: 2px;
+  background: var(--bg-input);
+  position: relative;
+  overflow: hidden;
+  border-radius: 1px;
+}
+
+.loading-bar::after {
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 40%;
+  background: var(--gradient-blue);
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+}
+
+.modal-overlay.active { opacity: 1; visibility: visible; }
+
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.modal-body { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.btn:hover { border-color: var(--accent-blue); }
+.btn.primary { background: var(--accent-blue); border-color: var(--accent-blue); color: white; }
+.btn.primary:hover { background: #2563eb; }
+
+/* Custom Leaflet Markers */
+.custom-marker {
+  border: none;
+  background: none;
+}
+
+.marker-pin {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.marker-pulse {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  position: absolute;
+  top: -8px; left: -8px;
+  animation: markerPulse 2s infinite;
+}
+
+@keyframes markerPulse {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 0; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+/* Heatmap area overlay styles */
+.congestion-overlay {
+  border-radius: 50%;
+  opacity: 0.4;
+  mix-blend-mode: screen;
+}
+
+/* Bus stop popup */
+.bus-popup { min-width: 260px; }
+.bus-popup h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.bus-popup .bus-routes { font-size: 11px; color: #64748b; margin-bottom: 8px; line-height: 1.5; }
+.bus-popup .bus-routes span {
+  display: inline-block; padding: 1px 6px; margin: 1px 2px;
+  background: rgba(59,130,246,0.15); color: #3b82f6; border-radius: 4px; font-weight: 600;
+}
+.bus-popup .bus-stats { display: flex; gap: 12px; margin-bottom: 8px; font-size: 12px; }
+.bus-popup .bus-stats div { display: flex; flex-direction: column; align-items: center; }
+.bus-popup .bus-stats .stat-val { font-size: 16px; font-weight: 700; }
+.bus-popup .bus-stats .stat-lbl { font-size: 10px; color: #94a3b8; }
+.bus-popup .mini-chart-container { width: 100%; height: 60px; }
+
+/* Responsive adjustments for the map with right panel */
+.main.panel-open { margin-right: 380px; }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo">
+      <div class="logo-icon"><i class="ri-route-line"></i></div>
+      <span class="logo-text">성수 클러스터 모빌리티 현황 </span>
+      <span class="logo-badge">Phase 1</span>
+    </div>
+  </div>
+  <div class="header-center">
+    <button class="header-tab active" data-view="infrastructure">Infrastructure</button>
+    <button class="header-tab" data-view="flow">Dynamic Flow</button>
+    <button class="header-tab" data-view="risk">Risk & Safety</button>
+  </div>
+  <div class="header-right">
+    <select class="period-select" id="periodSelect">
+      <option value="2026-01">2026년 1월</option>
+      <option value="2025-Q4">2025년 4분기</option>
+      <option value="2025-Q3">2025년 3분기</option>
+    </select>
+    <button class="header-btn" id="downloadBtn">
+      <i class="ri-download-2-line"></i> 내보내기
+    </button>
+    <button class="header-btn admin" id="adminBtn">
+      <i class="ri-settings-3-line"></i> 관리자
+    </button>
+  </div>
+</header>
+
+<!-- ===== SIDEBAR ===== -->
+<nav class="sidebar">
+  <!-- KPI Summary -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">핵심 지표 요약</div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">일평균 통행량</div>
+        <div class="kpi-value" style="color:var(--accent-cyan)">48.2<small style="font-size:12px;color:var(--text-muted)">만</small></div>
+        <div class="kpi-change up"><i class="ri-arrow-up-s-fill"></i> +3.2%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">평균 혼잡도</div>
+        <div class="kpi-value" style="color:var(--accent-amber)">0.78</div>
+        <div class="kpi-change up"><i class="ri-arrow-up-s-fill"></i> +0.05</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">보행 연속성</div>
+        <div class="kpi-value" style="color:var(--accent-green)">72.4</div>
+        <div class="kpi-change down"><i class="ri-arrow-down-s-fill"></i> -1.3</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">안전 지수</div>
+        <div class="kpi-value" style="color:var(--accent-purple)">68.5</div>
+        <div class="kpi-change neutral">— 0.0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer Controls -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">지도 레이어</div>
+    <div class="layer-item" data-layer="traffic">
+      <div class="layer-toggle active"></div>
+      <div class="layer-dot" style="background:var(--accent-red)"></div>
+      <span class="layer-name">차량 혼잡도</span>
+    </div>
+    <div class="layer-item" data-layer="pedestrian">
+      <div class="layer-toggle active"></div>
+      <div class="layer-dot" style="background:var(--accent-cyan)"></div>
+      <span class="layer-name">보행 밀도</span>
+    </div>
+    <div class="layer-item" data-layer="subway">
+      <div class="layer-toggle active"></div>
+      <div class="layer-dot" style="background:var(--accent-green)"></div>
+      <span class="layer-name">지하철 승하차</span>
+    </div>
+    <div class="layer-item" data-layer="bus">
+      <div class="layer-toggle active"></div>
+      <div class="layer-dot" style="background:var(--accent-blue)"></div>
+      <span class="layer-name">버스 승하차</span>
+    </div>
+    <div class="layer-item" data-layer="bike">
+      <div class="layer-toggle"></div>
+      <div class="layer-dot" style="background:var(--accent-purple)"></div>
+      <span class="layer-name">공유 자전거</span>
+    </div>
+    <div class="layer-item" data-layer="risk">
+      <div class="layer-toggle"></div>
+      <div class="layer-dot" style="background:var(--accent-amber)"></div>
+      <span class="layer-name">공사·행사 리스크</span>
+    </div>
+  </div>
+
+  <!-- Data Source Monitor -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">데이터 수집 현황</div>
+    <div class="source-summary">
+      <div class="source-summary-item">
+        <span class="source-summary-label">전체 정합성</span>
+        <span class="source-summary-value" style="color:var(--accent-green)">98.4%</span>
+      </div>
+      <div class="source-summary-item">
+        <span class="source-summary-label">누적 레코드</span>
+        <span class="source-summary-value">12.8M</span>
+      </div>
+    </div>
+    <div class="source-list">
+      <div class="source-row">
+        <div class="source-status ok"></div>
+        <div class="source-info">
+          <div class="source-name">교통량 API</div>
+          <div class="source-meta">1시간 · 09:00 갱신</div>
+        </div>
+        <span class="source-badge ok">정상</span>
+      </div>
+      <div class="source-row">
+        <div class="source-status ok"></div>
+        <div class="source-info">
+          <div class="source-name">지하철 승하차</div>
+          <div class="source-meta">1시간 · 09:00 갱신</div>
+        </div>
+        <span class="source-badge ok">정상</span>
+      </div>
+      <div class="source-row">
+        <div class="source-status ok"></div>
+        <div class="source-info">
+          <div class="source-name">버스 승하차</div>
+          <div class="source-meta">1시간 · 09:00 갱신</div>
+        </div>
+        <span class="source-badge ok">정상</span>
+      </div>
+      <div class="source-row">
+        <div class="source-status ok"></div>
+        <div class="source-info">
+          <div class="source-name">생활이동 데이터</div>
+          <div class="source-meta">월 1회 · 02.01 갱신</div>
+        </div>
+        <span class="source-badge ok">정상</span>
+      </div>
+      <div class="source-row">
+        <div class="source-status ok"></div>
+        <div class="source-info">
+          <div class="source-name">유동인구</div>
+          <div class="source-meta">일 1회 · 02.25 갱신</div>
+        </div>
+        <span class="source-badge ok">정상</span>
+      </div>
+      <div class="source-row">
+        <div class="source-status delayed"></div>
+        <div class="source-info">
+          <div class="source-name">공유 자전거</div>
+          <div class="source-meta">1시간 · 08:00 갱신</div>
+        </div>
+        <span class="source-badge delayed">지연</span>
+      </div>
+      <div class="source-row">
+        <div class="source-status ok"></div>
+        <div class="source-info">
+          <div class="source-name">인허가·공사·행사</div>
+          <div class="source-meta">일 1회 · 02.25 갱신</div>
+        </div>
+        <span class="source-badge ok">정상</span>
+      </div>
+    </div>
+    <div class="loading-bar" style="margin-top:10px"></div>
+  </div>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main panel-open" id="mainContent">
+  <div class="map-container">
+    <div id="map"></div>
+
+    <!-- Map Search -->
+    <div class="map-overlay-top">
+      <div class="map-search">
+        <i class="ri-search-line"></i>
+        <input type="text" placeholder="도로, 교차로, 지하철역 검색..." />
+      </div>
+      <div class="map-legend" id="mapLegend">
+      <div class="map-legend-title">혼잡도 (V/C ratio)</div>
+      <div class="legend-item">
+        <div class="legend-color" style="background:#10b981"></div>
+        <span>원활 (0.0 – 0.5)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background:#f59e0b"></div>
+        <span>서행 (0.5 – 0.8)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background:#ef4444"></div>
+        <span>정체 (0.8 – 1.0)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background:#991b1b"></div>
+        <span>심각 (1.0+)</span>
+      </div>
+      </div>
+    </div>
+
+    <!-- Real-time Info -->
+    <div class="map-info-card">
+      <div class="info-chip">
+        <div class="info-chip-dot" style="background:var(--accent-green)"></div>
+        <span style="color:var(--text-muted)">현재 통행량</span>
+        <span class="info-chip-value" style="color:var(--accent-cyan)">32,847</span>
+      </div>
+      <div class="info-chip">
+        <div class="info-chip-dot" style="background:var(--accent-amber)"></div>
+        <span style="color:var(--text-muted)">혼잡 구간</span>
+        <span class="info-chip-value" style="color:var(--accent-amber)">4곳</span>
+      </div>
+    </div>
+
+    <!-- Time Slider -->
+    <div class="time-slider-panel">
+      <div class="time-slider-header">
+        <div class="time-slider-title">
+          <i class="ri-time-line"></i>
+          시간대 분석
+          <span class="time-current" id="timeDisplay">08:00</span>
+        </div>
+        <div class="time-controls">
+          <button class="time-btn" id="playBtn"><i class="ri-play-fill"></i></button>
+          <button class="time-btn" title="1시간 단위"><i class="ri-speed-line"></i></button>
+        </div>
+      </div>
+      <div class="time-slider-track">
+        <div class="time-slider-bg">
+          <div class="time-slider-fill" id="sliderFill"></div>
+        </div>
+        <input type="range" min="0" max="23" value="8" step="1" id="timeSlider" />
+      </div>
+      <div class="time-labels">
+        <span class="time-label">00:00</span>
+        <span class="time-label">04:00</span>
+        <span class="time-label peak">08:00</span>
+        <span class="time-label">12:00</span>
+        <span class="time-label">16:00</span>
+        <span class="time-label peak">18:00</span>
+        <span class="time-label">22:00</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ===== RIGHT PANEL ===== -->
+<div class="panel-toggle" id="panelToggle"><i class="ri-arrow-right-s-line"></i></div>
+<aside class="right-panel" id="rightPanel">
+
+  <!-- Infrastructure Section -->
+  <div class="panel-section" id="sectionInfra">
+    <div class="panel-section-header">
+      <div class="panel-section-title">
+        <i class="ri-road-map-line"></i> Infrastructure 진단
+      </div>
+      <span class="panel-badge live">LIVE</span>
+    </div>
+
+    <!-- V/C Congestion Chart -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title">구간별 혼잡도 (V/C ratio)</span>
+        <div class="chart-tabs">
+          <button class="chart-tab active">시간대</button>
+          <button class="chart-tab">월간</button>
+        </div>
+      </div>
+      <div class="chart-body d3-chart" id="chartCongestion"></div>
+    </div>
+
+    <!-- Pedestrian Continuity -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title">보행 연속성 지수</span>
+      </div>
+      <div class="chart-body small d3-chart" id="chartPedestrian"></div>
+    </div>
+
+    <!-- Cluster Accessibility -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title">클러스터 접근성 분석</span>
+      </div>
+      <div class="chart-body d3-chart" id="chartAccessibility"></div>
+    </div>
+  </div>
+
+  <!-- Dynamic Flow Section -->
+  <div class="panel-section" id="sectionFlow" style="display:none">
+    <div class="panel-section-header">
+      <div class="panel-section-title">
+        <i class="ri-flow-chart"></i> Dynamic Flow 분석
+      </div>
+      <span class="panel-badge warning">분석중</span>
+    </div>
+
+    <!-- OD Flow -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title">시간대별 OD Flow 패턴</span>
+        <div class="chart-tabs">
+          <button class="chart-tab active">출근</button>
+          <button class="chart-tab">퇴근</button>
+          <button class="chart-tab">주말</button>
+        </div>
+      </div>
+      <div class="od-flow-container">
+        <div class="od-pair">
+          <span class="od-zone origin">강남구</span>
+          <div class="od-arrow"><div class="od-arrow-fill" style="width:85%"></div></div>
+          <span class="od-zone dest">성수동</span>
+          <span class="od-value">12,340명</span>
+        </div>
+        <div class="od-pair">
+          <span class="od-zone origin">송파구</span>
+          <div class="od-arrow"><div class="od-arrow-fill" style="width:62%"></div></div>
+          <span class="od-zone dest">성수동</span>
+          <span class="od-value">8,920명</span>
+        </div>
+        <div class="od-pair">
+          <span class="od-zone origin">성수동</span>
+          <div class="od-arrow"><div class="od-arrow-fill" style="width:73%"></div></div>
+          <span class="od-zone dest">종로구</span>
+          <span class="od-value">10,560명</span>
+        </div>
+        <div class="od-pair">
+          <span class="od-zone origin">마포구</span>
+          <div class="od-arrow"><div class="od-arrow-fill" style="width:48%"></div></div>
+          <span class="od-zone dest">성수동</span>
+          <span class="od-value">6,780명</span>
+        </div>
+        <div class="od-pair">
+          <span class="od-zone origin">광진구</span>
+          <div class="od-arrow"><div class="od-arrow-fill" style="width:55%"></div></div>
+          <span class="od-zone dest">성수동</span>
+          <span class="od-value">7,450명</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pedestrian Density Timeline -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title">보행 밀도 변화 추이</span>
+      </div>
+      <div class="chart-body d3-chart" id="chartPedDensity"></div>
+    </div>
+
+    <!-- Bus Stop Ridership -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title">버스 정류장별 시간대 승하차</span>
+        <div class="chart-tabs">
+          <button class="chart-tab active" data-bus-mode="total">합산</button>
+          <button class="chart-tab" data-bus-mode="ride">승차</button>
+          <button class="chart-tab" data-bus-mode="alight">하차</button>
+        </div>
+      </div>
+      <div class="chart-body large d3-chart" id="chartBusRidership"></div>
+    </div>
+
+    <!-- Shared Mobility -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title">공유 모빌리티 이용 집중도</span>
+      </div>
+      <div class="chart-body small d3-chart" id="chartSharedMobility"></div>
+    </div>
+  </div>
+
+  <!-- Risk & Safety Section -->
+  <div class="panel-section" id="sectionRisk" style="display:none">
+    <div class="panel-section-header">
+      <div class="panel-section-title">
+        <i class="ri-shield-check-line"></i> Risk & Safety
+      </div>
+      <span class="panel-badge danger">주의 4건</span>
+    </div>
+
+    <!-- Safety Radar -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title">Safety Index 구성요소</span>
+      </div>
+      <div class="chart-body large d3-chart" id="chartSafetyRadar"></div>
+    </div>
+
+    <!-- Risk Events -->
+    <div class="chart-container" style="background:transparent;border:none;padding:0;">
+      <div class="chart-header" style="padding:0 4px;">
+        <span class="chart-title">이동환경 리스크 이벤트</span>
+      </div>
+      <div class="risk-item">
+        <div class="risk-icon construction"><i class="ri-building-2-line"></i></div>
+        <div class="risk-content">
+          <div class="risk-title">서울숲역 인근 도로공사</div>
+          <div class="risk-meta">성수이로 12길 · 2026.02.20 – 03.15</div>
+        </div>
+        <span class="risk-impact high">높음</span>
+      </div>
+      <div class="risk-item">
+        <div class="risk-icon event"><i class="ri-calendar-event-line"></i></div>
+        <div class="risk-content">
+          <div class="risk-title">성수 공예 마켓</div>
+          <div class="risk-meta">연무장길 일대 · 2026.03.01 – 03.02</div>
+        </div>
+        <span class="risk-impact mid">중간</span>
+      </div>
+      <div class="risk-item">
+        <div class="risk-icon construction"><i class="ri-building-2-line"></i></div>
+        <div class="risk-content">
+          <div class="risk-title">뚝섬로 보도 확장공사</div>
+          <div class="risk-meta">뚝섬로 33길 · 2026.01.10 – 04.30</div>
+        </div>
+        <span class="risk-impact mid">중간</span>
+      </div>
+      <div class="risk-item">
+        <div class="risk-icon accident"><i class="ri-alarm-warning-line"></i></div>
+        <div class="risk-content">
+          <div class="risk-title">성수역 교차로 사고 다발</div>
+          <div class="risk-meta">최근 3개월 4건 발생</div>
+        </div>
+        <span class="risk-impact high">높음</span>
+      </div>
+    </div>
+
+    <!-- Sensitivity Analysis -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title">이동환경 변화 민감도</span>
+      </div>
+      <div class="chart-body d3-chart" id="chartSensitivity"></div>
+    </div>
+  </div>
+
+  <!-- Comparison Section (always visible) -->
+  <div class="panel-section">
+    <div class="panel-section-header">
+      <div class="panel-section-title">
+        <i class="ri-bar-chart-grouped-line"></i> 월·분기 비교
+      </div>
+    </div>
+    <div class="comparison-grid">
+      <div class="compare-card">
+        <div class="compare-label">이번 달</div>
+        <div class="compare-value" style="color:var(--accent-cyan)">48.2만</div>
+        <div class="compare-sub up" style="color:var(--accent-red)">▲ 3.2%</div>
+      </div>
+      <div class="compare-card">
+        <div class="compare-label">지난 달</div>
+        <div class="compare-value">46.7만</div>
+        <div class="compare-sub" style="color:var(--text-muted)">기준</div>
+      </div>
+      <div class="compare-card">
+        <div class="compare-label">이번 분기</div>
+        <div class="compare-value" style="color:var(--accent-green)">0.76</div>
+        <div class="compare-sub" style="color:var(--accent-green)">▼ 2.1%</div>
+      </div>
+      <div class="compare-card">
+        <div class="compare-label">지난 분기</div>
+        <div class="compare-value">0.78</div>
+        <div class="compare-sub" style="color:var(--text-muted)">기준</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Download Modal -->
+<div class="modal-overlay" id="downloadModal">
+  <div class="modal">
+    <div class="modal-title">데이터 내보내기</div>
+    <div class="modal-body">
+      <p style="margin-bottom:12px;">내보낼 데이터 형식을 선택하세요.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
+          <input type="radio" name="export" value="csv" checked> 
+          <span><strong>CSV</strong> — 원시 데이터</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
+          <input type="radio" name="export" value="xlsx">
+          <span><strong>Excel</strong> — 분석 보고서</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
+          <input type="radio" name="export" value="pdf">
+          <span><strong>PDF</strong> — 진단 리포트</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="document.getElementById('downloadModal').classList.remove('active')">취소</button>
+      <button class="btn primary" onclick="document.getElementById('downloadModal').classList.remove('active')">
+        <i class="ri-download-2-line"></i> 다운로드
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Modal -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <div class="modal-title"><i class="ri-settings-3-line" style="color:var(--accent-purple)"></i> 관리자 모드</div>
+    <div class="modal-body">
+      <p style="margin-bottom:16px;">데이터 갱신 및 시스템 관리</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);">
+          <span>공공 API 수동 갱신</span>
+          <button class="btn primary" style="padding:4px 12px;font-size:11px;">실행</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);">
+          <span>이상치 재검증</span>
+          <button class="btn primary" style="padding:4px 12px;font-size:11px;">실행</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);">
+          <span>누적 DB 백업</span>
+          <button class="btn primary" style="padding:4px 12px;font-size:11px;">실행</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);">
+          <span>지표 가중치 설정</span>
+          <button class="btn primary" style="padding:4px 12px;font-size:11px;">설정</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="document.getElementById('adminModal').classList.remove('active')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="d3-tooltip" id="tooltip"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+// ===========================
+// MOCK DATA
+// ===========================
+const SEONGSU_CENTER = [37.5445, 127.0560];
+
+const hourlyTraffic = Array.from({length: 24}, (_, i) => {
+  const base = 15000;
+  let peak = 0;
+  if (i >= 7 && i <= 9) peak = 18000 * Math.sin((i - 7) / 2 * Math.PI);
+  if (i >= 17 && i <= 19) peak = 16000 * Math.sin((i - 17) / 2 * Math.PI);
+  if (i >= 11 && i <= 14) peak = 6000;
+  return { hour: i, value: Math.round(base + peak + Math.random() * 3000) };
+});
+
+const congestionBySegment = [
+  { segment: '성수대교', vc: 0.92, volume: 4200 },
+  { segment: '뚝섬로', vc: 0.85, volume: 3800 },
+  { segment: '서울숲길', vc: 0.45, volume: 1200 },
+  { segment: '성수이로', vc: 0.78, volume: 3200 },
+  { segment: '연무장길', vc: 0.65, volume: 2400 },
+  { segment: '아차산로', vc: 0.88, volume: 3900 },
+  { segment: '왕십리로', vc: 0.71, volume: 2800 },
+];
+
+const pedestrianData = [
+  { zone: '성수역', width: 3.2, connectivity: 82, score: 78 },
+  { zone: '서울숲', width: 5.1, connectivity: 91, score: 89 },
+  { zone: '뚝섬역', width: 2.8, connectivity: 68, score: 62 },
+  { zone: '성수이로', width: 2.1, connectivity: 55, score: 48 },
+  { zone: '연무장', width: 4.5, connectivity: 78, score: 75 },
+  { zone: '성수대교', width: 1.8, connectivity: 42, score: 38 },
+];
+
+const accessibilityData = [
+  { facility: '성수역', subway: 95, bus: 82, walk: 70 },
+  { facility: '뚝섬역', subway: 90, bus: 75, walk: 65 },
+  { facility: '서울숲역', subway: 88, bus: 68, walk: 80 },
+  { facility: '성수 IT밸리', subway: 60, bus: 72, walk: 55 },
+  { facility: '서울숲공원', subway: 55, bus: 60, walk: 90 },
+];
+
+const pedDensityHourly = Array.from({length: 24}, (_, i) => {
+  let val = 500;
+  if (i >= 7 && i <= 9) val = 2000 + Math.random() * 800;
+  else if (i >= 11 && i <= 14) val = 2500 + Math.random() * 1000;
+  else if (i >= 17 && i <= 20) val = 3000 + Math.random() * 1200;
+  else if (i >= 21 || i <= 5) val = 300 + Math.random() * 400;
+  else val = 1000 + Math.random() * 600;
+  return { hour: i, density: Math.round(val), prev: Math.round(val * (0.85 + Math.random() * 0.3)) };
+});
+
+const sharedMobilityData = [
+  { station: '성수역 1번출구', usage: 342 },
+  { station: '서울숲 입구', usage: 287 },
+  { station: '뚝섬역 3번출구', usage: 198 },
+  { station: '성수이로 사거리', usage: 156 },
+  { station: '카페거리 입구', usage: 245 },
+  { station: '성수 IT밸리', usage: 178 },
+];
+
+const safetyRadarData = [
+  { axis: '보도폭', value: 0.74 },
+  { axis: '교차로 밀도', value: 0.61 },
+  { axis: '사고 이력', value: 0.52 },
+  { axis: '보행량', value: 0.78 },
+  { axis: '차량 통행량', value: 0.67 },
+];
+
+const sensitivityData = [
+  { factor: '공사 구간', current: 72, impact: -15 },
+  { factor: '행사 개최', current: 68, impact: -8 },
+  { factor: '보도 확장', current: 74, impact: +12 },
+  { factor: '신호 개선', current: 61, impact: +18 },
+  { factor: '주차 규제', current: 67, impact: +5 },
+];
+
+const mapMarkers = [
+  { lat: 37.5445, lng: 127.0560, name: '성수역', type: 'subway', value: 28400 },
+  { lat: 37.5476, lng: 127.0430, name: '뚝섬역', type: 'subway', value: 19200 },
+  { lat: 37.5485, lng: 127.0648, name: '서울숲역', type: 'subway', value: 15800 },
+  // Bus stops are now loaded dynamically from JSON
+  { lat: 37.5430, lng: 127.0580, name: '성수 IT밸리', type: 'cluster', value: 8500 },
+  { lat: 37.5510, lng: 127.0490, name: '서울숲공원', type: 'poi', value: 12000 },
+  { lat: 37.5420, lng: 127.0530, name: '성수대교 남단', type: 'congestion', vc: 0.92 },
+  { lat: 37.5460, lng: 127.0470, name: '뚝섬로 혼잡구간', type: 'congestion', vc: 0.85 },
+  { lat: 37.5435, lng: 127.0610, name: '공사구간', type: 'risk', risk: 'high' },
+  { lat: 37.5490, lng: 127.0550, name: '행사구간', type: 'risk', risk: 'mid' },
+];
+
+const congestionZones = [
+  { lat: 37.5420, lng: 127.0530, radius: 200, vc: 0.92, color: '#ef4444' },
+  { lat: 37.5460, lng: 127.0470, radius: 180, vc: 0.85, color: '#ef4444' },
+  { lat: 37.5445, lng: 127.0560, radius: 250, vc: 0.78, color: '#f59e0b' },
+  { lat: 37.5476, lng: 127.0430, radius: 150, vc: 0.65, color: '#f59e0b' },
+  { lat: 37.5485, lng: 127.0648, radius: 170, vc: 0.45, color: '#10b981' },
+  { lat: 37.5510, lng: 127.0490, radius: 220, vc: 0.38, color: '#10b981' },
+];
+
+const roadSegments = [
+  { coords: [[37.5420, 127.0530], [37.5445, 127.0560]], vc: 0.92 },
+  { coords: [[37.5445, 127.0560], [37.5467, 127.0520]], vc: 0.78 },
+  { coords: [[37.5467, 127.0520], [37.5476, 127.0430]], vc: 0.85 },
+  { coords: [[37.5476, 127.0430], [37.5510, 127.0490]], vc: 0.65 },
+  { coords: [[37.5510, 127.0490], [37.5485, 127.0648]], vc: 0.45 },
+  { coords: [[37.5445, 127.0560], [37.5485, 127.0648]], vc: 0.55 },
+  { coords: [[37.5445, 127.0560], [37.5430, 127.0580]], vc: 0.88 },
+  { coords: [[37.5430, 127.0580], [37.5435, 127.0610]], vc: 0.71 },
+];
+
+// ===========================
+// MAP INITIALIZATION
+// ===========================
+const map = L.map('map', {
+  center: SEONGSU_CENTER,
+  zoom: 15,
+  zoomControl: false,
+  attributionControl: false,
+});
+
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19,
+}).addTo(map);
+
+function getVCColor(vc) {
+  if (vc >= 1.0) return '#991b1b';
+  if (vc >= 0.8) return '#ef4444';
+  if (vc >= 0.5) return '#f59e0b';
+  return '#10b981';
+}
+
+const mapLayers = {
+  traffic: L.layerGroup(),
+  pedestrian: L.layerGroup(),
+  subway: L.layerGroup(),
+  bus: L.layerGroup(),
+  bike: L.layerGroup(),
+  risk: L.layerGroup(),
+};
+
+roadSegments.forEach(seg => {
+  L.polyline(seg.coords, {
+    color: getVCColor(seg.vc),
+    weight: 6,
+    opacity: 0.8,
+    lineCap: 'round',
+  }).bindPopup(`<b>V/C: ${seg.vc}</b><br>상태: ${seg.vc >= 0.8 ? '정체' : seg.vc >= 0.5 ? '서행' : '원활'}`)
+    .addTo(mapLayers.traffic);
+});
+
+congestionZones.forEach(z => {
+  L.circle([z.lat, z.lng], {
+    radius: z.radius,
+    color: 'transparent',
+    fillColor: z.color,
+    fillOpacity: 0.2,
+  }).addTo(mapLayers.pedestrian);
+});
+
+mapMarkers.filter(m => m.type === 'subway').forEach(m => {
+  const icon = L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="position:relative">
+      <div class="marker-pulse" style="background:rgba(16,185,129,0.3)"></div>
+      <div class="marker-pin" style="background:var(--accent-green)"></div>
+    </div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+  L.marker([m.lat, m.lng], { icon })
+    .bindPopup(`<b>${m.name}</b><br>일평균 승하차: ${m.value.toLocaleString()}명`)
+    .addTo(mapLayers.subway);
+});
+
+// Bus layer is now populated dynamically from JSON data (see loadBusStopData below)
+
+mapMarkers.filter(m => m.type === 'risk').forEach(m => {
+  const color = m.risk === 'high' ? '#ef4444' : '#f59e0b';
+  const icon = L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="position:relative">
+      <div class="marker-pulse" style="background:${color}40"></div>
+      <div style="width:28px;height:28px;background:${color};border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4)">⚠</div>
+    </div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+  L.marker([m.lat, m.lng], { icon })
+    .bindPopup(`<b>${m.name}</b><br>리스크: ${m.risk === 'high' ? '높음' : '중간'}`)
+    .addTo(mapLayers.risk);
+});
+
+['traffic', 'pedestrian', 'subway', 'bus'].forEach(k => mapLayers[k].addTo(map));
+
+// ===========================
+// D3 CHARTS
+// ===========================
+const tooltip = d3.select('#tooltip');
+
+function showTooltip(event, label, value) {
+  tooltip
+    .style('visibility', 'visible')
+    .html(`<div class="tip-label">${label}</div><div class="tip-value">${value}</div>`)
+    .style('top', (event.pageY - 40) + 'px')
+    .style('left', (event.pageX + 12) + 'px');
+}
+
+function hideTooltip() {
+  tooltip.style('visibility', 'hidden');
+}
+
+// --- Congestion Bar Chart ---
+function drawCongestionChart() {
+  const container = document.getElementById('chartCongestion');
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  const width = rect.width || 340;
+  const height = rect.height || 160;
+  const margin = { top: 8, right: 12, bottom: 28, left: 50 };
+
+  d3.select(container).selectAll('*').remove();
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  const iw = width - margin.left - margin.right;
+  const ih = height - margin.top - margin.bottom;
+
+  const x = d3.scaleLinear().domain([0, 1.1]).range([0, iw]);
+  const y = d3.scaleBand().domain(congestionBySegment.map(d => d.segment)).range([0, ih]).padding(0.25);
+
+  g.append('g').attr('transform', `translate(0,${ih})`)
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d3.format('.1f')))
+    .selectAll('text').style('font-size', '9px').style('fill', '#64748b');
+
+  g.append('g')
+    .call(d3.axisLeft(y).tickSize(0))
+    .selectAll('text').style('font-size', '10px').style('fill', '#94a3b8');
+
+  g.selectAll('.domain').remove();
+
+  [0.5, 0.8, 1.0].forEach(v => {
+    g.append('line')
+      .attr('x1', x(v)).attr('x2', x(v))
+      .attr('y1', 0).attr('y2', ih)
+      .attr('stroke', v === 0.8 ? '#f59e0b' : v === 1.0 ? '#ef4444' : '#1e2d4a')
+      .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '3,3')
+      .attr('opacity', 0.6);
+  });
+
+  g.selectAll('rect.bar')
+    .data(congestionBySegment)
+    .join('rect')
+    .attr('class', 'bar')
+    .attr('x', 0)
+    .attr('y', d => y(d.segment))
+    .attr('width', 0)
+    .attr('height', y.bandwidth())
+    .attr('fill', d => getVCColor(d.vc))
+    .attr('rx', 3)
+    .on('mouseover', function(event, d) { showTooltip(event, d.segment, `V/C: ${d.vc} | 통행량: ${d.volume.toLocaleString()}`); d3.select(this).attr('opacity', 0.8); })
+    .on('mousemove', function(event) { tooltip.style('top', (event.pageY - 40) + 'px').style('left', (event.pageX + 12) + 'px'); })
+    .on('mouseout', function() { hideTooltip(); d3.select(this).attr('opacity', 1); })
+    .transition().duration(800).delay((_, i) => i * 80)
+    .attr('width', d => x(d.vc));
+}
+
+// --- Pedestrian Score Chart ---
+function drawPedestrianChart() {
+  const container = document.getElementById('chartPedestrian');
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  const width = rect.width || 340;
+  const height = rect.height || 120;
+  const margin = { top: 8, right: 12, bottom: 28, left: 50 };
+
+  d3.select(container).selectAll('*').remove();
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  const iw = width - margin.left - margin.right;
+  const ih = height - margin.top - margin.bottom;
+
+  const x = d3.scaleBand().domain(pedestrianData.map(d => d.zone)).range([0, iw]).padding(0.3);
+  const y = d3.scaleLinear().domain([0, 100]).range([ih, 0]);
+
+  g.append('g').attr('transform', `translate(0,${ih})`)
+    .call(d3.axisBottom(x).tickSize(0))
+    .selectAll('text').style('font-size', '9px').style('fill', '#94a3b8');
+
+  g.selectAll('.domain').remove();
+
+  g.selectAll('rect')
+    .data(pedestrianData)
+    .join('rect')
+    .attr('x', d => x(d.zone))
+    .attr('y', ih)
+    .attr('width', x.bandwidth())
+    .attr('height', 0)
+    .attr('fill', d => d.score >= 70 ? '#10b981' : d.score >= 50 ? '#f59e0b' : '#ef4444')
+    .attr('rx', 3)
+    .attr('opacity', 0.85)
+    .on('mouseover', function(event, d) { showTooltip(event, d.zone, `연속성: ${d.score} | 보도폭: ${d.width}m`); })
+    .on('mousemove', function(event) { tooltip.style('top', (event.pageY - 40) + 'px').style('left', (event.pageX + 12) + 'px'); })
+    .on('mouseout', hideTooltip)
+    .transition().duration(600).delay((_, i) => i * 60)
+    .attr('y', d => y(d.score))
+    .attr('height', d => ih - y(d.score));
+
+  g.selectAll('.score-label')
+    .data(pedestrianData)
+    .join('text')
+    .attr('class', 'score-label')
+    .attr('x', d => x(d.zone) + x.bandwidth() / 2)
+    .attr('y', d => y(d.score) - 4)
+    .attr('text-anchor', 'middle')
+    .attr('fill', '#94a3b8')
+    .attr('font-size', '9px')
+    .attr('font-weight', '600')
+    .text(d => d.score);
+}
+
+// --- Accessibility Grouped Bar ---
+function drawAccessibilityChart() {
+  const container = document.getElementById('chartAccessibility');
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  const width = rect.width || 340;
+  const height = rect.height || 160;
+  const margin = { top: 12, right: 12, bottom: 28, left: 60 };
+
+  d3.select(container).selectAll('*').remove();
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  const iw = width - margin.left - margin.right;
+  const ih = height - margin.top - margin.bottom;
+
+  const modes = ['subway', 'bus', 'walk'];
+  const colors = { subway: '#10b981', bus: '#3b82f6', walk: '#f59e0b' };
+  const labels = { subway: '지하철', bus: '버스', walk: '도보' };
+
+  const y0 = d3.scaleBand().domain(accessibilityData.map(d => d.facility)).range([0, ih]).padding(0.2);
+  const y1 = d3.scaleBand().domain(modes).range([0, y0.bandwidth()]).padding(0.1);
+  const x = d3.scaleLinear().domain([0, 100]).range([0, iw]);
+
+  g.append('g').attr('transform', `translate(0,${ih})`)
+    .call(d3.axisBottom(x).ticks(5))
+    .selectAll('text').style('font-size', '9px').style('fill', '#64748b');
+
+  g.append('g')
+    .call(d3.axisLeft(y0).tickSize(0))
+    .selectAll('text').style('font-size', '9px').style('fill', '#94a3b8');
+
+  g.selectAll('.domain').remove();
+
+  const groups = g.selectAll('.group')
+    .data(accessibilityData)
+    .join('g')
+    .attr('transform', d => `translate(0,${y0(d.facility)})`);
+
+  groups.selectAll('rect')
+    .data(d => modes.map(m => ({ mode: m, value: d[m], facility: d.facility })))
+    .join('rect')
+    .attr('y', d => y1(d.mode))
+    .attr('x', 0)
+    .attr('height', y1.bandwidth())
+    .attr('width', 0)
+    .attr('fill', d => colors[d.mode])
+    .attr('rx', 2)
+    .attr('opacity', 0.85)
+    .on('mouseover', function(event, d) { showTooltip(event, `${d.facility} - ${labels[d.mode]}`, `접근성: ${d.value}`); })
+    .on('mousemove', function(event) { tooltip.style('top', (event.pageY - 40) + 'px').style('left', (event.pageX + 12) + 'px'); })
+    .on('mouseout', hideTooltip)
+    .transition().duration(700).delay((_, i) => i * 40)
+    .attr('width', d => x(d.value));
+
+  const legend = svg.append('g').attr('transform', `translate(${width - 130}, 2)`);
+  modes.forEach((m, i) => {
+    legend.append('rect').attr('x', i * 48).attr('y', 0).attr('width', 8).attr('height', 8).attr('fill', colors[m]).attr('rx', 2);
+    legend.append('text').attr('x', i * 48 + 12).attr('y', 8).text(labels[m]).style('font-size', '9px').style('fill', '#94a3b8');
+  });
+}
+
+// --- Pedestrian Density Area Chart ---
+function drawPedDensityChart() {
+  const container = document.getElementById('chartPedDensity');
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  const width = rect.width || 340;
+  const height = rect.height || 160;
+  const margin = { top: 8, right: 12, bottom: 28, left: 40 };
+
+  d3.select(container).selectAll('*').remove();
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  const iw = width - margin.left - margin.right;
+  const ih = height - margin.top - margin.bottom;
+
+  const x = d3.scaleLinear().domain([0, 23]).range([0, iw]);
+  const y = d3.scaleLinear().domain([0, d3.max(pedDensityHourly, d => Math.max(d.density, d.prev)) * 1.1]).range([ih, 0]);
+
+  g.append('g').attr('transform', `translate(0,${ih})`)
+    .call(d3.axisBottom(x).ticks(8).tickFormat(d => `${d}시`))
+    .selectAll('text').style('font-size', '9px').style('fill', '#64748b');
+
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d3.format('.0s')))
+    .selectAll('text').style('font-size', '9px').style('fill', '#64748b');
+
+  g.selectAll('.domain').remove();
+
+  const areaPrev = d3.area().x(d => x(d.hour)).y0(ih).y1(d => y(d.prev)).curve(d3.curveMonotoneX);
+  const areaCurr = d3.area().x(d => x(d.hour)).y0(ih).y1(d => y(d.density)).curve(d3.curveMonotoneX);
+  const lineCurr = d3.line().x(d => x(d.hour)).y(d => y(d.density)).curve(d3.curveMonotoneX);
+
+  g.append('path').datum(pedDensityHourly)
+    .attr('fill', 'rgba(100,116,139,0.1)')
+    .attr('d', areaPrev);
+
+  g.append('path').datum(pedDensityHourly)
+    .attr('fill', 'rgba(6,182,212,0.15)')
+    .attr('d', areaCurr);
+
+  g.append('path').datum(pedDensityHourly)
+    .attr('fill', 'none')
+    .attr('stroke', '#06b6d4')
+    .attr('stroke-width', 2)
+    .attr('d', lineCurr);
+
+  g.selectAll('circle')
+    .data(pedDensityHourly.filter((_, i) => i % 3 === 0))
+    .join('circle')
+    .attr('cx', d => x(d.hour))
+    .attr('cy', d => y(d.density))
+    .attr('r', 3)
+    .attr('fill', '#06b6d4')
+    .attr('stroke', '#0a0e1a')
+    .attr('stroke-width', 1.5)
+    .on('mouseover', function(event, d) { showTooltip(event, `${d.hour}:00`, `현재: ${d.density.toLocaleString()}명 | 전월: ${d.prev.toLocaleString()}명`); })
+    .on('mousemove', function(event) { tooltip.style('top', (event.pageY - 40) + 'px').style('left', (event.pageX + 12) + 'px'); })
+    .on('mouseout', hideTooltip);
+
+  const legend = svg.append('g').attr('transform', `translate(${width - 120}, 4)`);
+  legend.append('line').attr('x1', 0).attr('x2', 16).attr('y1', 4).attr('y2', 4).attr('stroke', '#06b6d4').attr('stroke-width', 2);
+  legend.append('text').attr('x', 20).attr('y', 8).text('이번 달').style('font-size', '9px').style('fill', '#94a3b8');
+  legend.append('line').attr('x1', 60).attr('x2', 76).attr('y1', 4).attr('y2', 4).attr('stroke', '#64748b').attr('stroke-width', 1).attr('stroke-dasharray', '3,2');
+  legend.append('text').attr('x', 80).attr('y', 8).text('전월').style('font-size', '9px').style('fill', '#64748b');
+}
+
+// --- Shared Mobility Horizontal Bar ---
+function drawSharedMobilityChart() {
+  const container = document.getElementById('chartSharedMobility');
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  const width = rect.width || 340;
+  const height = rect.height || 120;
+  const margin = { top: 4, right: 40, bottom: 4, left: 90 };
+
+  d3.select(container).selectAll('*').remove();
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  const iw = width - margin.left - margin.right;
+  const ih = height - margin.top - margin.bottom;
+
+  const sorted = [...sharedMobilityData].sort((a, b) => b.usage - a.usage);
+  const x = d3.scaleLinear().domain([0, d3.max(sorted, d => d.usage)]).range([0, iw]);
+  const y = d3.scaleBand().domain(sorted.map(d => d.station)).range([0, ih]).padding(0.3);
+
+  g.append('g').call(d3.axisLeft(y).tickSize(0))
+    .selectAll('text').style('font-size', '9px').style('fill', '#94a3b8');
+  g.selectAll('.domain').remove();
+
+  g.selectAll('rect')
+    .data(sorted)
+    .join('rect')
+    .attr('x', 0).attr('y', d => y(d.station))
+    .attr('width', 0).attr('height', y.bandwidth())
+    .attr('fill', '#8b5cf6').attr('rx', 3).attr('opacity', 0.8)
+    .transition().duration(600).delay((_, i) => i * 50)
+    .attr('width', d => x(d.usage));
+
+  g.selectAll('.val-label')
+    .data(sorted)
+    .join('text')
+    .attr('x', d => x(d.usage) + 6)
+    .attr('y', d => y(d.station) + y.bandwidth() / 2)
+    .attr('dy', '0.35em')
+    .text(d => d.usage)
+    .style('font-size', '10px').style('fill', '#94a3b8').style('font-weight', '600');
+}
+
+// --- Safety Radar Chart ---
+function drawSafetyRadar() {
+  const container = document.getElementById('chartSafetyRadar');
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  const width = rect.width || 340;
+  const height = rect.height || 200;
+
+  d3.select(container).selectAll('*').remove();
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+
+  const cx = width / 2;
+  const cy = height / 2;
+  const radius = Math.min(width, height) / 2 - 30;
+  const n = safetyRadarData.length;
+  const angleSlice = (Math.PI * 2) / n;
+
+  const rScale = d3.scaleLinear().domain([0, 1]).range([0, radius]);
+
+  const levels = 5;
+  for (let l = 1; l <= levels; l++) {
+    const r = (radius / levels) * l;
+    const points = Array.from({length: n}, (_, i) => {
+      const angle = angleSlice * i - Math.PI / 2;
+      return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
+    }).join(' ');
+    svg.append('polygon')
+      .attr('points', points)
+      .attr('fill', 'none')
+      .attr('stroke', '#1e2d4a')
+      .attr('stroke-width', 1);
+  }
+
+  safetyRadarData.forEach((_, i) => {
+    const angle = angleSlice * i - Math.PI / 2;
+    svg.append('line')
+      .attr('x1', cx).attr('y1', cy)
+      .attr('x2', cx + radius * Math.cos(angle))
+      .attr('y2', cy + radius * Math.sin(angle))
+      .attr('stroke', '#1e2d4a').attr('stroke-width', 1);
+
+    const lx = cx + (radius + 18) * Math.cos(angle);
+    const ly = cy + (radius + 18) * Math.sin(angle);
+    svg.append('text')
+      .attr('x', lx).attr('y', ly)
+      .attr('text-anchor', 'middle')
+      .attr('dy', '0.35em')
+      .text(safetyRadarData[i].axis)
+      .style('font-size', '10px').style('fill', '#94a3b8');
+  });
+
+  const radarPoints = safetyRadarData.map((d, i) => {
+    const angle = angleSlice * i - Math.PI / 2;
+    return `${cx + rScale(d.value) * Math.cos(angle)},${cy + rScale(d.value) * Math.sin(angle)}`;
+  }).join(' ');
+
+  svg.append('polygon')
+    .attr('points', radarPoints)
+    .attr('fill', 'rgba(59,130,246,0.2)')
+    .attr('stroke', '#3b82f6')
+    .attr('stroke-width', 2);
+
+  safetyRadarData.forEach((d, i) => {
+    const angle = angleSlice * i - Math.PI / 2;
+    svg.append('circle')
+      .attr('cx', cx + rScale(d.value) * Math.cos(angle))
+      .attr('cy', cy + rScale(d.value) * Math.sin(angle))
+      .attr('r', 4)
+      .attr('fill', '#3b82f6')
+      .attr('stroke', '#0a0e1a')
+      .attr('stroke-width', 2)
+      .on('mouseover', function(event) { showTooltip(event, d.axis, `${Math.round(d.value * 100)}점`); })
+      .on('mousemove', function(event) { tooltip.style('top', (event.pageY - 40) + 'px').style('left', (event.pageX + 12) + 'px'); })
+      .on('mouseout', hideTooltip);
+  });
+}
+
+// --- Sensitivity Bar Chart ---
+function drawSensitivityChart() {
+  const container = document.getElementById('chartSensitivity');
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  const width = rect.width || 340;
+  const height = rect.height || 160;
+  const margin = { top: 8, right: 12, bottom: 28, left: 70 };
+
+  d3.select(container).selectAll('*').remove();
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  const iw = width - margin.left - margin.right;
+  const ih = height - margin.top - margin.bottom;
+
+  const maxAbs = d3.max(sensitivityData, d => Math.abs(d.impact));
+  const x = d3.scaleLinear().domain([-maxAbs - 2, maxAbs + 2]).range([0, iw]);
+  const y = d3.scaleBand().domain(sensitivityData.map(d => d.factor)).range([0, ih]).padding(0.3);
+
+  g.append('line')
+    .attr('x1', x(0)).attr('x2', x(0))
+    .attr('y1', 0).attr('y2', ih)
+    .attr('stroke', '#64748b').attr('stroke-width', 1).attr('stroke-dasharray', '3,3');
+
+  g.append('g').call(d3.axisLeft(y).tickSize(0))
+    .selectAll('text').style('font-size', '10px').style('fill', '#94a3b8');
+  g.selectAll('.domain').remove();
+
+  g.selectAll('rect')
+    .data(sensitivityData)
+    .join('rect')
+    .attr('x', d => d.impact >= 0 ? x(0) : x(d.impact))
+    .attr('y', d => y(d.factor))
+    .attr('width', 0)
+    .attr('height', y.bandwidth())
+    .attr('fill', d => d.impact >= 0 ? '#10b981' : '#ef4444')
+    .attr('rx', 3)
+    .attr('opacity', 0.8)
+    .transition().duration(600).delay((_, i) => i * 60)
+    .attr('width', d => Math.abs(x(d.impact) - x(0)));
+
+  g.selectAll('.impact-label')
+    .data(sensitivityData)
+    .join('text')
+    .attr('x', d => d.impact >= 0 ? x(d.impact) + 4 : x(d.impact) - 4)
+    .attr('y', d => y(d.factor) + y.bandwidth() / 2)
+    .attr('dy', '0.35em')
+    .attr('text-anchor', d => d.impact >= 0 ? 'start' : 'end')
+    .text(d => (d.impact >= 0 ? '+' : '') + d.impact)
+    .style('font-size', '10px').style('fill', '#94a3b8').style('font-weight', '600');
+}
+
+// ===========================
+// INITIALIZATION & EVENTS
+// ===========================
+function initCharts() {
+  drawCongestionChart();
+  drawPedestrianChart();
+  drawAccessibilityChart();
+  drawPedDensityChart();
+  drawSharedMobilityChart();
+  drawSafetyRadar();
+  drawSensitivityChart();
+  if (typeof drawBusRidershipChart === 'function') drawBusRidershipChart();
+}
+
+setTimeout(initCharts, 300);
+
+// Tab switching
+document.querySelectorAll('.header-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.header-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+
+    const view = this.dataset.view;
+    document.getElementById('sectionInfra').style.display = view === 'infrastructure' ? 'block' : 'none';
+    document.getElementById('sectionFlow').style.display = view === 'flow' ? 'block' : 'none';
+    document.getElementById('sectionRisk').style.display = view === 'risk' ? 'block' : 'none';
+
+    const legendEl = document.getElementById('mapLegend');
+    if (view === 'infrastructure') {
+      legendEl.innerHTML = `
+        <div class="map-legend-title">혼잡도 (V/C ratio)</div>
+        <div class="legend-item"><div class="legend-color" style="background:#10b981"></div><span>원활 (0.0 – 0.5)</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#f59e0b"></div><span>서행 (0.5 – 0.8)</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div><span>정체 (0.8 – 1.0)</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#991b1b"></div><span>심각 (1.0+)</span></div>`;
+    } else if (view === 'flow') {
+      legendEl.innerHTML = `
+        <div class="map-legend-title">이동 흐름</div>
+        <div class="legend-item"><div class="legend-color" style="background:#06b6d4"></div><span>보행 밀집 구역</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#8b5cf6"></div><span>공유모빌리티 거점</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#10b981"></div><span>지하철역</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#3b82f6"></div><span>버스정류장</span></div>`;
+    } else {
+      legendEl.innerHTML = `
+        <div class="map-legend-title">리스크 현황</div>
+        <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div><span>높은 리스크</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#f59e0b"></div><span>중간 리스크</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#10b981"></div><span>안전 구역</span></div>`;
+    }
+
+    setTimeout(initCharts, 50);
+  });
+});
+
+// Time slider
+const timeSlider = document.getElementById('timeSlider');
+const timeDisplay = document.getElementById('timeDisplay');
+const sliderFill = document.getElementById('sliderFill');
+
+timeSlider.addEventListener('input', function() {
+  const val = parseInt(this.value);
+  timeDisplay.textContent = `${String(val).padStart(2, '0')}:00`;
+  sliderFill.style.width = `${(val / 23) * 100}%`;
+});
+
+// Play button
+let playing = false;
+let playInterval;
+document.getElementById('playBtn').addEventListener('click', function() {
+  playing = !playing;
+  this.classList.toggle('active', playing);
+  this.innerHTML = playing ? '<i class="ri-pause-fill"></i>' : '<i class="ri-play-fill"></i>';
+
+  if (playing) {
+    playInterval = setInterval(() => {
+      let val = (parseInt(timeSlider.value) + 1) % 24;
+      timeSlider.value = val;
+      timeSlider.dispatchEvent(new Event('input'));
+    }, 800);
+  } else {
+    clearInterval(playInterval);
+  }
+});
+
+// Layer toggles
+document.querySelectorAll('.layer-item').forEach(item => {
+  item.addEventListener('click', function() {
+    const toggle = this.querySelector('.layer-toggle');
+    toggle.classList.toggle('active');
+    const layer = this.dataset.layer;
+    if (toggle.classList.contains('active')) {
+      if (mapLayers[layer]) mapLayers[layer].addTo(map);
+    } else {
+      if (mapLayers[layer]) map.removeLayer(mapLayers[layer]);
+    }
+  });
+});
+
+// Right panel toggle
+const panelToggle = document.getElementById('panelToggle');
+const rightPanel = document.getElementById('rightPanel');
+const mainContent = document.getElementById('mainContent');
+
+panelToggle.addEventListener('click', function() {
+  rightPanel.classList.toggle('hidden');
+  mainContent.classList.toggle('panel-open');
+  this.classList.toggle('shifted');
+  const icon = this.querySelector('i');
+  icon.className = rightPanel.classList.contains('hidden') ? 'ri-arrow-left-s-line' : 'ri-arrow-right-s-line';
+  setTimeout(() => { map.invalidateSize(); initCharts(); }, 350);
+});
+
+// Modal triggers
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  document.getElementById('downloadModal').classList.add('active');
+});
+
+document.getElementById('adminBtn').addEventListener('click', () => {
+  document.getElementById('adminModal').classList.add('active');
+});
+
+// Chart tabs
+document.querySelectorAll('.chart-tabs').forEach(tabs => {
+  tabs.querySelectorAll('.chart-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      this.parentElement.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+});
+
+// ===========================
+// BUS STOP DATA (from JSON)
+// ===========================
+let busStopData = null;
+let busCircleMarkers = [];
+let currentBusChartMode = 'total';
+
+function getBusMarkerRadius(total, hour) {
+  if (!total || total === 0) return 4;
+  return Math.max(4, Math.min(22, Math.sqrt(total) * 0.6));
+}
+
+function getBusMarkerColor(ride, alight) {
+  const total = ride + alight;
+  if (total === 0) return '#3b82f6';
+  const ratio = ride / total;
+  if (ratio > 0.6) return '#06b6d4';
+  if (ratio < 0.4) return '#ec4899';
+  return '#3b82f6';
+}
+
+function buildBusPopupContent(stop, hour) {
+  const ride = stop.hourly.ride[hour];
+  const alight = stop.hourly.alight[hour];
+  const routeTags = stop.routes.map(r => `<span>${r}</span>`).join('');
+
+  const barW = 8, barH = 50;
+  const maxVal = Math.max(...stop.hourly.ride, ...stop.hourly.alight, 1);
+  let bars = '';
+  for (let h = 0; h < 24; h++) {
+    const rH = (stop.hourly.ride[h] / maxVal) * barH;
+    const aH = (stop.hourly.alight[h] / maxVal) * barH;
+    const x = h * 10 + 2;
+    const highlight = h === hour ? 1 : 0.5;
+    bars += `<rect x="${x}" y="${barH - rH}" width="${barW/2}" height="${rH}" fill="#06b6d4" opacity="${highlight}" rx="1"/>`;
+    bars += `<rect x="${x + barW/2}" y="${barH - aH}" width="${barW/2}" height="${aH}" fill="#ec4899" opacity="${highlight}" rx="1"/>`;
+  }
+
+  return `<div class="bus-popup">
+    <h3>${stop.name}</h3>
+    <div class="bus-routes">${routeTags}</div>
+    <div class="bus-stats">
+      <div><span class="stat-val" style="color:#06b6d4">${ride.toLocaleString()}</span><span class="stat-lbl">${hour}시 승차</span></div>
+      <div><span class="stat-val" style="color:#ec4899">${alight.toLocaleString()}</span><span class="stat-lbl">${hour}시 하차</span></div>
+      <div><span class="stat-val">${stop.total.toLocaleString()}</span><span class="stat-lbl">월 합계</span></div>
+    </div>
+    <div class="mini-chart-container">
+      <svg viewBox="0 0 242 ${barH + 4}" width="100%" height="60">${bars}</svg>
+    </div>
+  </div>`;
+}
+
+function updateBusMarkers(hour) {
+  if (!busStopData) return;
+  busCircleMarkers.forEach(({ marker, stop }) => {
+    const ride = stop.hourly.ride[hour];
+    const alight = stop.hourly.alight[hour];
+    const total = ride + alight;
+    marker.setRadius(getBusMarkerRadius(total, hour));
+    marker.setStyle({ fillColor: getBusMarkerColor(ride, alight) });
+    marker.setPopupContent(buildBusPopupContent(stop, hour));
+  });
+}
+
+function loadBusStopData() {
+  fetch('data/seongsu_bus_stops_hourly.json')
+    .then(r => r.json())
+    .then(data => {
+      busStopData = data;
+      const hour = parseInt(timeSlider.value);
+
+      mapLayers.bus.clearLayers();
+      busCircleMarkers = [];
+
+      data.stops.forEach(stop => {
+        const ride = stop.hourly.ride[hour];
+        const alight = stop.hourly.alight[hour];
+        const total = ride + alight;
+        const marker = L.circleMarker([stop.lat, stop.lng], {
+          radius: getBusMarkerRadius(total, hour),
+          fillColor: getBusMarkerColor(ride, alight),
+          color: '#ffffff',
+          weight: 1.5,
+          fillOpacity: 0.85,
+          opacity: 0.9,
+        });
+        marker.bindPopup(buildBusPopupContent(stop, hour), { maxWidth: 300 });
+        marker.addTo(mapLayers.bus);
+        busCircleMarkers.push({ marker, stop });
+      });
+
+      const srcRow = document.querySelector('.source-row:nth-child(3) .source-meta');
+      if (srcRow) {
+        srcRow.textContent = `${data.meta.use_ym.slice(0,4)}.${data.meta.use_ym.slice(4)} · ${data.meta.stop_count}개 정류장`;
+      }
+
+      drawBusRidershipChart();
+    })
+    .catch(err => console.warn('Bus stop JSON load failed:', err));
+}
+
+// Augment time slider to update bus markers
+const origTimeInput = timeSlider.oninput;
+timeSlider.addEventListener('input', function() {
+  updateBusMarkers(parseInt(this.value));
+});
+
+loadBusStopData();
+
+// ===========================
+// BUS RIDERSHIP D3 CHART
+// ===========================
+function drawBusRidershipChart() {
+  const container = document.getElementById('chartBusRidership');
+  if (!container || !busStopData) return;
+  const rect = container.getBoundingClientRect();
+  const width = rect.width || 340;
+  const height = rect.height || 200;
+  const margin = { top: 12, right: 12, bottom: 28, left: 40 };
+
+  d3.select(container).selectAll('*').remove();
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  const iw = width - margin.left - margin.right;
+  const ih = height - margin.top - margin.bottom;
+
+  const top10 = busStopData.stops.filter(s => s.total > 0).slice(0, 10);
+  if (top10.length === 0) {
+    g.append('text').attr('x', iw/2).attr('y', ih/2)
+      .attr('text-anchor', 'middle').text('승하차 데이터 없음')
+      .style('fill', '#64748b').style('font-size', '12px');
+    return;
+  }
+
+  const rideAgg = Array.from({length: 24}, (_, h) =>
+    top10.reduce((sum, s) => sum + s.hourly.ride[h], 0));
+  const alightAgg = Array.from({length: 24}, (_, h) =>
+    top10.reduce((sum, s) => sum + s.hourly.alight[h], 0));
+  const totalAgg = rideAgg.map((r, i) => r + alightAgg[i]);
+
+  const mode = currentBusChartMode;
+  const displayData = mode === 'ride' ? rideAgg : mode === 'alight' ? alightAgg : totalAgg;
+  const chartColor = mode === 'ride' ? '#06b6d4' : mode === 'alight' ? '#ec4899' : '#3b82f6';
+
+  const x = d3.scaleLinear().domain([0, 23]).range([0, iw]);
+  const y = d3.scaleLinear().domain([0, d3.max(displayData) * 1.1]).range([ih, 0]);
+
+  g.append('g').attr('transform', `translate(0,${ih})`)
+    .call(d3.axisBottom(x).ticks(8).tickFormat(d => `${d}시`))
+    .selectAll('text').style('font-size', '9px').style('fill', '#64748b');
+
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(',.0f')))
+    .selectAll('text').style('font-size', '9px').style('fill', '#64748b');
+
+  g.selectAll('.domain').remove();
+
+  const area = d3.area()
+    .x((_, i) => x(i)).y0(ih).y1(d => y(d))
+    .curve(d3.curveMonotoneX);
+
+  const line = d3.line()
+    .x((_, i) => x(i)).y(d => y(d))
+    .curve(d3.curveMonotoneX);
+
+  g.append('path').datum(displayData)
+    .attr('fill', `${chartColor}25`)
+    .attr('d', area);
+
+  g.append('path').datum(displayData)
+    .attr('fill', 'none')
+    .attr('stroke', chartColor)
+    .attr('stroke-width', 2)
+    .attr('d', line);
+
+  if (mode === 'total') {
+    const areaRide = d3.area()
+      .x((_, i) => x(i)).y0(ih).y1(d => y(d))
+      .curve(d3.curveMonotoneX);
+    g.append('path').datum(rideAgg)
+      .attr('fill', '#06b6d415')
+      .attr('d', areaRide);
+    g.append('path').datum(rideAgg)
+      .attr('fill', 'none').attr('stroke', '#06b6d4')
+      .attr('stroke-width', 1).attr('stroke-dasharray', '4,2')
+      .attr('d', d3.line().x((_, i) => x(i)).y(d => y(d)).curve(d3.curveMonotoneX));
+  }
+
+  const currentHour = parseInt(timeSlider.value);
+  g.append('line')
+    .attr('x1', x(currentHour)).attr('x2', x(currentHour))
+    .attr('y1', 0).attr('y2', ih)
+    .attr('stroke', '#f59e0b').attr('stroke-width', 1.5)
+    .attr('stroke-dasharray', '4,3').attr('opacity', 0.7);
+
+  g.selectAll('circle')
+    .data(displayData.filter((_, i) => i % 2 === 0))
+    .join('circle')
+    .attr('cx', (_, i) => x(i * 2))
+    .attr('cy', d => y(d))
+    .attr('r', 3)
+    .attr('fill', chartColor)
+    .attr('stroke', '#0a0e1a')
+    .attr('stroke-width', 1.5)
+    .on('mouseover', function(event, d) {
+      const h = displayData.indexOf(d);
+      const rLabel = mode === 'alight' ? '하차' : mode === 'ride' ? '승차' : '합계';
+      showTooltip(event, `${h}:00`, `${rLabel}: ${d.toLocaleString()}명`);
+    })
+    .on('mousemove', function(event) {
+      tooltip.style('top', (event.pageY - 40) + 'px').style('left', (event.pageX + 12) + 'px');
+    })
+    .on('mouseout', hideTooltip);
+
+  const legend = svg.append('g').attr('transform', `translate(${width - 140}, 4)`);
+  if (mode === 'total') {
+    legend.append('rect').attr('x', 0).attr('y', 0).attr('width', 10).attr('height', 3).attr('fill', '#3b82f6');
+    legend.append('text').attr('x', 14).attr('y', 6).text('합계').style('font-size', '9px').style('fill', '#94a3b8');
+    legend.append('rect').attr('x', 42).attr('y', 0).attr('width', 10).attr('height', 3).attr('fill', '#06b6d4');
+    legend.append('text').attr('x', 56).attr('y', 6).text('승차').style('font-size', '9px').style('fill', '#94a3b8');
+  }
+}
+
+document.querySelectorAll('[data-bus-mode]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    currentBusChartMode = this.dataset.busMode;
+    drawBusRidershipChart();
+  });
+});
+
+window.addEventListener('resize', () => { setTimeout(initCharts, 100); });
+</script>
+</body>
+</html>

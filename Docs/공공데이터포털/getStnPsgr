@@ -1,0 +1,11 @@
+# 역별승하차인원 오픈 API 조회
+https://api.seoulmetro.co.kr:21000/viewer/public/psgr/stnPsgr
+
+# Curl
+curl -X 'GET' \
+  'https://apis.data.go.kr/B553766/psgr/getStnPsgr?serviceKey=d24a839e18558202ac13a90513d8d6167869b3c8e9dff46f2d11dfcc7bd8a164&numOfRows=1000&pasngYmd=20260225&stnNm=%EC%84%B1%EC%88%98&lineNm=2' \
+  -H 'accept: */*'
+
+# Request URL
+https://apis.data.go.kr/B553766/psgr/getStnPsgr?serviceKey=d24a839e18558202ac13a90513d8d6167869b3c8e9dff46f2d11dfcc7bd8a164&numOfRows=1000&pasngYmd=20260225&stnNm=%EC%84%B1%EC%88%98&lineNm=2
+
