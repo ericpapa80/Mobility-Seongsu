@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ViewTab } from './Header';
+import { api } from '../api/client';
 import './Sidebar.css';
 
 export type FoottrafficMetric = 'acost' | 'cost' | 'grade' | 'per';
@@ -292,6 +293,15 @@ export default function Sidebar({ layers, onToggle, activeView, foottrafficSetti
   const sts = storeSettings;
   const setSts = (s: StoreSettings) => onStoreSettings(s);
 
+  const [dbStatus, setDbStatus] = useState<{
+    total_rows: number; collection_count: number; latest: string | null; oldest: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (trafficMode !== 'realtime' || !layers.traffic) return;
+    api.trafficRealtimeStatus().then(s => setDbStatus(s)).catch(() => {});
+  }, [trafficMode, layers.traffic]);
+
   return (
     <aside className="sidebar">
       {/* KPI Cards */}
@@ -393,13 +403,38 @@ export default function Sidebar({ layers, onToggle, activeView, foottrafficSetti
                           </div>
                         </div>
                         {trafficMode === 'realtime' && (
-                          <div className="lp-row">
-                            <span className="lp-label" style={{ fontSize: '9px', color: '#94a3b8' }}>
-                              {trafficRealtimeTime
-                                ? `갱신: ${new Date(trafficRealtimeTime * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · 5분 주기`
-                                : '갱신 주기: 5분'}
-                            </span>
-                          </div>
+                          <>
+                            <div className="lp-row">
+                              <span className="lp-label" style={{ fontSize: '9px', color: '#94a3b8' }}>
+                                {trafficRealtimeTime
+                                  ? `갱신: ${new Date(trafficRealtimeTime * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · 5분 주기`
+                                  : '갱신 주기: 5분'}
+                              </span>
+                            </div>
+                            <div className="lp-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', padding: '6px 8px', marginTop: '2px' }}>
+                              <span style={{ fontSize: '9px', color: '#64748b', fontWeight: 600, letterSpacing: '0.05em' }}>DB 수집 현황</span>
+                              {dbStatus ? (
+                                <>
+                                  <span style={{ fontSize: '10px', color: dbStatus.total_rows > 0 ? '#4ade80' : '#f87171' }}>
+                                    {dbStatus.total_rows > 0 ? '● 정상' : '○ 데이터 없음'} &nbsp;
+                                    <span style={{ color: '#94a3b8' }}>{dbStatus.total_rows.toLocaleString()}행 · {dbStatus.collection_count}회 수집</span>
+                                  </span>
+                                  {dbStatus.latest && (
+                                    <span style={{ fontSize: '9px', color: '#64748b' }}>
+                                      최근: {new Date(dbStatus.latest).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  )}
+                                  {dbStatus.oldest && (
+                                    <span style={{ fontSize: '9px', color: '#64748b' }}>
+                                      시작: {new Date(dbStatus.oldest).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                <span style={{ fontSize: '10px', color: '#64748b' }}>조회 중...</span>
+                              )}
+                            </div>
+                          </>
                         )}
                       </div>
                     )}

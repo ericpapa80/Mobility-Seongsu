@@ -296,6 +296,13 @@ export const api = {
     fetchJson<TrafficResponse>(hour !== undefined ? `/api/traffic?hour=${hour}` : '/api/traffic'),
   trafficPattern: () => fetchJson<TrafficPatternResponse>('/api/traffic/pattern'),
   trafficRealtime: () => fetchJson<TrafficRealtimeResponse>('/api/traffic/realtime'),
+  trafficRealtimeStatus: () => fetchJson<{
+    db: boolean;
+    total_rows: number;
+    collection_count: number;
+    latest: string | null;
+    oldest: string | null;
+  }>('/api/traffic/realtime/status'),
   foottraffic: () => fetchJson<FoottrafficResponse>('/api/foottraffic'),
   stores: (category?: string) =>
     fetchJson<StoresResponse>(category ? `/api/stores?category=${category}` : '/api/stores'),

@@ -312,6 +312,32 @@ async def get_traffic_pattern():
     return data
 
 
+@router.get("/traffic/realtime/status")
+async def get_traffic_realtime_status():
+    """traffic_realtime_log 적재 현황 — 크론잡 동작 확인용"""
+    from app.db.database import is_db_available, async_session
+    if not is_db_available() or async_session is None:
+        return {"db": False, "total_rows": 0, "latest": None, "oldest": None}
+
+    from sqlalchemy import text as sa_text
+    async with async_session() as session:
+        row = (await session.execute(sa_text("""
+            SELECT
+                COUNT(*)                             AS total_rows,
+                MAX(fetched_at) AT TIME ZONE 'Asia/Seoul' AS latest,
+                MIN(fetched_at) AT TIME ZONE 'Asia/Seoul' AS oldest,
+                COUNT(DISTINCT DATE_TRUNC('minute', fetched_at)) AS collection_count
+            FROM traffic_realtime_log
+        """))).one()
+    return {
+        "db": True,
+        "total_rows": row.total_rows,
+        "collection_count": row.collection_count,
+        "latest": row.latest.isoformat() if row.latest else None,
+        "oldest": row.oldest.isoformat() if row.oldest else None,
+    }
+
+
 @router.get("/traffic/realtime")
 async def get_traffic_realtime():
     """TOPIS 실시간 도로 소통 정보 (5분 캐시)"""
