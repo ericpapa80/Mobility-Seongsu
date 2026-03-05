@@ -1,0 +1,86 @@
+# sgis 대화형통계지도_인구주택총조사_조건설정하기_결합조건건
+
+## cURL(bash)
+curl 'https://sgis.mods.go.kr/ServiceAPI/stats/fusionstats.json' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: ko,en;q=0.9,en-US;q=0.8' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-type: application/x-www-form-urlencoded; charset=UTF-8' \
+  -b 'SCOUTER=xo14om1gbcjg8; JSESSIONID=LYog_FvwwPMS2kp91aM3uS-CVv0cR2H0AzP4meJX.portal02; i18next=ko; accessToken=2f9a1640-09be-4649-b393-290771fe548f' \
+  -H 'Origin: https://sgis.mods.go.kr' \
+  -H 'Pragma: no-cache' \
+  -H 'Referer: https://sgis.mods.go.kr/view/map/interactiveMap/populationHouseView' \
+  -H 'Sec-Fetch-Dest: empty' \
+  -H 'Sec-Fetch-Mode: cors' \
+  -H 'Sec-Fetch-Site: same-origin' \
+  -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0' \
+  -H 'sec-ch-ua: "Not(A:Brand";v="8", "Chromium";v="144", "Microsoft Edge";v="144"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "Windows"' \
+  -H 'ts: 20260128145125720' \
+  --data-raw 'combine_base=population&age_from=20&age_to=39&household_type=A0&house_area_cd=01,02&area_type=0&year=2024&fusion_query_type=population_household_house&low_search=1&adm_cd=11040680&bnd_year=2025'
+
+============
+
+## Request Header
+
+accept
+*/*
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+ko,en;q=0.9,en-US;q=0.8
+cache-control
+no-cache
+connection
+keep-alive
+content-length
+193
+content-type
+application/x-www-form-urlencoded; charset=UTF-8
+cookie
+SCOUTER=xo14om1gbcjg8; JSESSIONID=LYog_FvwwPMS2kp91aM3uS-CVv0cR2H0AzP4meJX.portal02; i18next=ko; accessToken=2f9a1640-09be-4649-b393-290771fe548f
+host
+sgis.mods.go.kr
+origin
+https://sgis.mods.go.kr
+pragma
+no-cache
+referer
+https://sgis.mods.go.kr/view/map/interactiveMap/populationHouseView
+sec-ch-ua
+"Not(A:Brand";v="8", "Chromium";v="144", "Microsoft Edge";v="144"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-platform
+"Windows"
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-origin
+ts
+20260128145125720
+user-agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0
+
+================
+
+## Payload
+
+combine_base=population&age_from=20&age_to=39&household_type=A0&house_area_cd=01,02&area_type=0&year=2024&fusion_query_type=population_household_house&low_search=1&adm_cd=11040680&bnd_year=2025
+
+===============
+
+## Response
+
+{"result":[{"data_cnt":"9","adm_cd":"11040680010001"},{"data_cnt":"5","adm_cd":"11040680010003"},{"data_cnt":"31","adm_cd":"11040680010004"},{"data_cnt":"69","adm_cd":"11040680010005"},{"data_cnt":"30","adm_cd":"11040680010009"},{"data_cnt":"48","adm_cd":"11040680010010"},{"data_cnt":"59","adm_cd":"11040680010011"},{"data_cnt":"N/A","adm_cd":"11040680010012"},{"data_cnt":"11","adm_cd":"11040680010013"}],"errCd":0,"errMsg":"Success","id":"4011","trId":"brQu_4011_1769579485855","ts":"20260128145125720"}
+
+===============
+## 참고: 나이·연도별 수집
+Payload의 age_from, age_to, year를 바꿔가며 동일 API로 수집 가능.
+- 연령: age_from=0, age_to=150이면 전체 연령. 예) 20~39세: age_from=20, age_to=39
+- 연도: year=2020, 2021, … (인구/주택 기준 연도)
+스크립트: run_fusion_pop_house_household.py (--age-from, --age-to, --year), run_fusion_seongsu_1person_all_house.py (--age-from, --age-to, --year)

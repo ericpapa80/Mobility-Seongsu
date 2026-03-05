@@ -1,0 +1,2 @@
+"""Foottraffic collection scripts."""
+

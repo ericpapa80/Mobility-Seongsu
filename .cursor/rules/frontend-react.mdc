@@ -1,0 +1,63 @@
+---
+description: React/TypeScript 컴포넌트, 데이터 흐름, D3 차트, Deck.gl 지도 패턴
+globs: frontend/src/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Frontend React Convention
+
+## File Layout
+
+| 위치 | 역할 | 예시 |
+|------|------|------|
+| `views/` | 페이지 단위 뷰 | `Dashboard.tsx`, `Strategy.tsx` |
+| `components/` | 재사용 UI 컴포넌트 | `Header.tsx`, `Sidebar.tsx`, `DeckMap.tsx` |
+| `hooks/` | 커스텀 React Query 훅 | `useMapData.ts` |
+| `api/` | 인터페이스 + fetch 함수 | `client.ts` |
+| `lib/` | 유틸리티 (색상, 계산) | `colors.ts` |
+
+## Data Flow
+
+```
+api/client.ts (interface + fetch)
+  → hooks/useMapData.ts (useQuery 훅)
+    → components/ 또는 views/ 에서 사용
+```
+
+새 API 추가 시: `client.ts`에 interface + api 함수 → `useMapData.ts`에 훅 → 컴포넌트에서 호출
+
+## Component Pattern
+
+```tsx
+// Good — 함수형 export default, 1파일 1컴포넌트
+export default function BusRidershipChart({ stops, mode }: Props) { ... }
+
+// Bad — arrow function export, 여러 컴포넌트 혼재
+export const Chart = () => { ... }
+```
+
+## D3 Chart Pattern
+
+```tsx
+const ref = useRef<HTMLDivElement>(null);
+useEffect(() => {
+  const el = ref.current;
+  if (!el || data.length === 0) return;
+  d3.select(el).selectAll('*').remove();  // 항상 초기화
+  const svg = d3.select(el).append('svg')...
+  // ... 축, 데이터 바인딩, transition
+}, [data, ...deps]);
+return <div ref={ref} className="chart-container" />;
+```
+
+## Map (Deck.gl)
+
+- 레이어 토글: `LayerVisibility` interface (`Sidebar.tsx`에서 export)
+- 레이어 생성: `layerVisibility.xxx && new ScatterplotLayer({...})` 패턴
+- Basemap: Carto Dark Matter (`react-map-gl/maplibre`)
+
+## React Query
+
+- `queryKey`: camelCase 배열 (`['busStopsHourly', hour]`)
+- `queryFn`: `api.xxx()` 직접 호출
+- 조건부 fetch: `enabled` 옵션 사용

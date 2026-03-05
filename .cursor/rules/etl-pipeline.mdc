@@ -1,0 +1,65 @@
+---
+description: ETL 파이프라인 디렉터리 구조, 파일명 규칙, 스크립트 작성 패턴
+globs: pipeline/**/*.py
+alwaysApply: false
+---
+
+# ETL Pipeline Convention
+
+## Directory Structure
+
+```
+pipeline/
+  extractors/    ← 외부 API 수집 스크립트 (Extract)
+  transforms/    ← 정제·병합 스크립트 (Transform)
+  ref/           ← 참조/마스터 데이터 (변경 드문 정적 파일)
+  bronze/        ← 수집 원시 CSV (API 응답 그대로, git 제외)
+    archive/     ← 과거 수집분
+  silver/        ← 가공 완료 JSON (앱이 소비하는 SSOT, git 포함)
+```
+
+## File Naming Rules
+
+### Bronze (원시 CSV)
+
+패턴: `{domain}__{source}__{date}[__suffix].csv`
+- 단어 내 구분: `_` (single), 필드 간 구분: `__` (double)
+
+```
+# Good
+bus__seoul__202601.csv
+subway__sk__20260225.csv
+subway__public__20260225__detail.csv
+
+# Bad
+seoul_bus_202601_성수동노선_정류장별.csv   ← 한글, 필드 구분 모호
+skopenapi_성수동_지하철역.csv             ← source 위치 불일치
+```
+
+| field  | values                         |
+|--------|--------------------------------|
+| domain | `bus`, `subway`                |
+| source | `seoul`, `sk`, `public`        |
+| date   | `YYYYMM` 또는 `YYYYMMDD`       |
+| suffix | `detail`, `line7730` 등 (선택) |
+
+### Silver (최종 JSON): `{entity}_{granularity}.json` (예: `bus_stops_hourly.json`)
+### Ref (참조): `{domain}_{description}.{ext}` (예: `bus_stop_locations.csv`)
+### Extractors: `{domain}_{desc}.py` (예: `bus_ridership.py`)
+### Transforms: `build_{output}.py` (예: `build_bus_stops.py`)
+
+## Script Pattern
+
+```python
+ROOT = Path(__file__).resolve().parent.parent  # pipeline/
+BRONZE_DIR = ROOT / "bronze"
+SILVER_DIR = ROOT / "silver"
+REF_DIR = ROOT / "ref"
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="...")
+    # argparse 로 입출력 경로·날짜 파라미터 정의
+```
+
+- 의존성은 `pipeline/requirements.txt`에서 관리 (백엔드와 분리)
+- transforms 기본 출력은 항상 `pipeline/silver/`

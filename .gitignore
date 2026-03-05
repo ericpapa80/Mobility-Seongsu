@@ -33,5 +33,11 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+# Pipeline — bronze (원시 데이터, 용량 큼) 제외, silver (가공 JSON) 포함
+pipeline/bronze/**/*.csv
+pipeline/bronze/**/*.jsonl
+pipeline/bronze/archive/
+!pipeline/silver/
+
 # Build / Railway
 .railway/

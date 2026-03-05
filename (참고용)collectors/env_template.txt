@@ -1,0 +1,55 @@
+# ============================================
+# 환경 변수 템플릿
+# ============================================
+# 이 파일을 .env로 복사하고 실제 값으로 수정하세요
+# cp env_template.txt .env
+#
+# 주의: .env 파일은 Git에 커밋하지 마세요!
+# 
+# Framework 통합:
+# - 이 .env 파일은 collectors/ 폴더 전용입니다
+# - 프로젝트 루트의 .env와 별도로 관리됩니다
+# ============================================
+
+# ============================================
+# Framework Backend API (Framework 통합용)
+# ============================================
+BACKEND_API_URL=http://localhost:3000
+
+# ============================================
+# SGIS API (공식 OpenAPI3)
+# ============================================
+# 경계 API (sgis_fusion GUI에서 사용): 아래 중 하나
+# 1) 직접 토큰: SGIS_OPENAPI_ACCESS_TOKEN=발급받은액세스토큰
+# 2) 또는 키로 발급: SGIS_CONSUMER_KEY + SGIS_CONSUMER_SECRET
+SGIS_CONSUMER_KEY=your_consumer_key_here
+SGIS_CONSUMER_SECRET=your_consumer_secret_here
+# SGIS_OPENAPI_ACCESS_TOKEN=발급받은액세스토큰
+
+# SGIS 결합조건 수집 (비공개·세션 의존, scripts/sgis_fusion/)
+# 대화형통계지도 로그인 후 쿠키의 accessToken 값만 넣어도 됨
+# SGIS_FUSION_ACCESS_TOKEN=발급받은액세스토큰
+# 또는 전체 쿠키: SGIS_FUSION_COOKIE=전체쿠키문자열
+
+# ============================================
+# API Keys
+# ============================================
+VWORLD_API_KEY=your_vworld_api_key_here
+KAKAO_API_KEY=KakaoAK your_kakao_api_key_here
+KAKAO_REST_API_KEY=your_kakao_rest_api_key_here  # 카카오 로컬 API (지오코딩용)
+MAPBOX_TOKEN=pk.your_mapbox_token_here
+ORS_API_KEY=your_ors_api_key_here
+
+# ============================================
+# SBIZ API (소상공인시장진흥공단)
+# ============================================
+SBIZ_SERVICE_KEY=your_sbiz_service_key_here
+
+# ============================================
+# Database
+# ============================================
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=your_database_name
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password

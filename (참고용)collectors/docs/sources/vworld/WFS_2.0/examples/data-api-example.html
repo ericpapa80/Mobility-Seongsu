@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-world Data API 예제</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0b7dda;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .info {
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>V-world Data API (req/data) 예제</h1>
+    <div class="info">
+        <strong>권장 방법:</strong> Data API는 WFS보다 간단하고 JSON 응답이 일관적입니다.
+    </div>
+    
+    <div class="container">
+        <div>
+            <h2>요청 설정</h2>
+            <form id="dataForm">
+                <div class="form-group">
+                    <label>인증키 (key):</label>
+                    <input type="text" id="apiKey" placeholder="YOUR_API_KEY" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>도메인 (domain):</label>
+                    <input type="text" id="domain" value="http://localhost" placeholder="http://localhost" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>레이어 ID (data):</label>
+                    <select id="layerId">
+                        <option value="LT_C_LANDINFOBASEMAP">LT_C_LANDINFOBASEMAP (LX맵)</option>
+                        <option value="LT_C_SPBD">LT_C_SPBD (도로명주소건물)</option>
+                        <option value="LP_PA_CBND_BUBUN">LP_PA_CBND_BUBUN (지적도 부번)</option>
+                        <option value="LT_C_UQ111">LT_C_UQ111 (도시지역)</option>
+                    </select>
+                    <small>Data API는 대문자 사용</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>geomfilter BOX (minX,minY,maxX,maxY):</label>
+                    <input type="text" id="geomfilter" value="BOX(14134500,4518600,14136500,4520600)" placeholder="BOX(14134500,4518600,14136500,4520600)" required>
+                    <small>면적 10km² 이내 (서울 종로구 인근 약 4km²)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>페이지 크기 (size):</label>
+                    <input type="number" id="size" value="10" min="1" max="1000">
+                </div>
+                
+                <div class="form-group">
+                    <label>페이지 번호 (page):</label>
+                    <input type="number" id="page" value="1" min="1">
+                </div>
+                
+                <div class="form-group">
+                    <label>좌표계 (crs):</label>
+                    <select id="crs">
+                        <option value="EPSG:3857">EPSG:3857 (Web Mercator)</option>
+                        <option value="EPSG:4326">EPSG:4326 (WGS84)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="geometry" checked> geometry 포함
+                    </label>
+                    <label>
+                        <input type="checkbox" id="attribute" checked> attribute 포함
+                    </label>
+                </div>
+                
+                <button type="submit">Data API 요청 실행</button>
+            </form>
+        </div>
+        
+        <div>
+            <h2>결과</h2>
+            <div id="result" class="result">
+                <p>요청을 실행하면 결과가 여기에 표시됩니다.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            $('#dataForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const apiKey = $('#apiKey').val();
+                const domain = $('#domain').val();
+                const layerId = $('#layerId').val();
+                const geomfilter = $('#geomfilter').val();
+                const size = $('#size').val();
+                const page = $('#page').val();
+                const crs = $('#crs').val();
+                const geometry = $('#geometry').is(':checked');
+                const attribute = $('#attribute').is(':checked');
+                
+                const resultDiv = $('#result');
+                resultDiv.html('<p>요청 중...</p>');
+                
+                // Data API 요청
+                $.ajax({
+                    url: 'https://api.vworld.kr/req/data?',
+                    type: 'GET',
+                    dataType: 'jsonp',
+                    data: {
+                        key: apiKey,
+                        domain: domain,
+                        service: 'data',
+                        version: '2.0',
+                        request: 'GetFeature',
+                        format: 'json',
+                        size: size,
+                        page: page,
+                        geometry: geometry,
+                        attribute: attribute,
+                        crs: crs,
+                        data: layerId,
+                        geomfilter: geomfilter
+                    },
+                    timeout: 30000,
+                    success: function(response) {
+                        if (response.response.status === 'OK') {
+                            const record = response.response.record;
+                            const features = response.response.result.featureCollection.features;
+                            
+                            let html = `
+                                <div class="success">
+                                    <h3>성공!</h3>
+                                    <p><strong>상태:</strong> ${response.response.status}</p>
+                                    <p><strong>총 건수:</strong> ${record.total}</p>
+                                    <p><strong>현재 페이지:</strong> ${response.response.page.current} / ${response.response.page.total}</p>
+                                    <p><strong>응답 건수:</strong> ${features.length}건</p>
+                            `;
+                            
+                            if (features.length > 0) {
+                                html += '<h4>샘플 피처 (최대 3개):</h4>';
+                                features.slice(0, 3).forEach((feature, idx) => {
+                                    html += `
+                                        <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 3px;">
+                                            <strong>피처 ${idx + 1} (ID: ${feature.id}):</strong>
+                                            <pre>${JSON.stringify(feature.properties, null, 2)}</pre>
+                                        </div>
+                                    `;
+                                });
+                            }
+                            
+                            html += '</div>';
+                            resultDiv.html(html);
+                        } else {
+                            const error = response.response.error;
+                            resultDiv.html(`
+                                <div class="error">
+                                    <h3>오류 발생</h3>
+                                    <p><strong>코드:</strong> ${error.code}</p>
+                                    <p><strong>메시지:</strong> ${error.text}</p>
+                                    <pre>${JSON.stringify(response, null, 2)}</pre>
+                                </div>
+                            `);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        resultDiv.html(`
+                            <div class="error">
+                                <h3>요청 실패</h3>
+                                <p>상태: ${status}</p>
+                                <p>오류: ${error}</p>
+                            </div>
+                        `);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

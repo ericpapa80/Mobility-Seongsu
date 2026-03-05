@@ -1,0 +1,56 @@
+.header {
+  height: var(--header-height);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+}
+
+.header-left { display: flex; align-items: center; gap: 14px; }
+.logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--gradient-blue);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: white;
+}
+.logo-text { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-badge {
+  font-size: 10px; background: var(--accent-blue); color: white;
+  padding: 2px 8px; border-radius: 20px; font-weight: 600;
+}
+
+.header-center { display: flex; align-items: center; gap: 6px; }
+.header-tab {
+  padding: 6px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  border: none; background: none; cursor: pointer;
+  transition: all 0.2s;
+}
+.header-tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+.header-tab.active { color: white; background: var(--accent-blue); }
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.period-select {
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text-primary); font-family: inherit;
+}
+
+.header-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text-secondary); transition: all 0.2s; font-family: inherit;
+}
+.header-btn:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+.header-btn.admin { border-color: var(--accent-purple); color: var(--accent-purple); }

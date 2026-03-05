@@ -1,0 +1,119 @@
+https://www.vworld.kr/dev/v4dv_wmsguide2_s001.do
+
+---
+[WMS/WFS API 2.0 반영 현황]
+※ WMS/WFS API 2.0: api.vworld.kr/req/wms, api.vworld.kr/req/wfs
+
+■ WMS (req/wms) – 반영됨
+  · [25.12] 국토지리정보원_WMTS영상지도비교: http://api.vworld.kr/req/wms?
+  · [24.12] 국가및민간지도비교: http://api.vworld.kr/req/wms?
+  · [24.06] 로드뷰: https://api.vworld.kr/req/wms?
+  · [23.12] KML 다운로드: https://api.vworld.kr/req/wms?
+  · [25.03] 3D등산로: https://api.vworld.kr/req/wms? (MYMAP)
+  · [23.11] 3D다트게임 test: https://api.vworld.kr/req/wms? (GetCapabilities)
+
+■ WFS (req/wfs) – 반영됨
+  · [24.05] 인근 부동산정보: https://api.vworld.kr/req/wfs?
+    (service=WFS, request=GetFeature, version=1.1.0, TYPENAME, bbox, ...)
+
+■ Data API (req/data, GetFeature) – WFS 대신 사용
+  · KML다운로드, 청약분양, 건축물통합조회, 재난안전문자, 클러스터·이동경로,
+    생활기상, 교통안전지도, 3D다트 등 다수 → req/data + service=data&request=GetFeature
+
+■ 구 API (API 2.0 미반영)
+  · [23.11] 3D다트게임 loadWMS(): http://2d.vworld.kr:8895/2DCache/gis/map/WMS?Key=...
+    → WMS/WFS API 2.0 아님. req/wms 로 전환 권장.
+
+■ 참고
+  · [25.12], [24.12] WMS는 http 사용 → https 권장.
+  · 벡터(GetFeature) 용도는 req/wfs 보다 req/data 를 쓰는 모델이 더 많음.
+
+==============
+
+## WFS 사용예제
+https://api.vworld.kr/req/wfs?SERVICE=WFS&REQUEST=GetFeature&TYPENAME=lt_c_uq111&BBOX=13987670,3912271,14359383,4642932&PROPERTYNAME=mnum,sido_cd,sigungu_cd,dyear,dnum,ucode,bon_bun,bu_bun,uname,sido_name,sigg_name,ag_geom&VERSION=1.1.0&MAXFEATURES=40&SRSNAME=EPSG:900913&OUTPUT=GML2&EXCEPTIONS=text/xml&KEY=[KEY]&DOMAIN=[DOMAIN]&FILTER=[WFS FILTER 1.1 참고]
+
+
+==============
+
+## LX맵 (lt_c_landinfobasemap) 요청 테스트
+
+■ CSV 확인 결과
+  · 레이어 ID: lt_c_landinfobasemap
+  · 한글명: LX맵
+  · 컬럼: gid, pnu, sido_nm, sgg_nm, emd_nm, ri_nm, jibun, jimok, parea, rn_nm, bld_mnnm, bld_slno, ag_geom
+
+■ WFS 요청 URL 예시
+  https://api.vworld.kr/req/wfs?
+    SERVICE=WFS
+    &REQUEST=GetFeature
+    &TYPENAME=lt_c_landinfobasemap
+    &BBOX=13987670,3912271,14359383,4642932
+    &PROPERTYNAME=gid,pnu,sido_nm,sgg_nm,emd_nm,ri_nm,jibun,jimok,parea,rn_nm,bld_mnnm,bld_slno,ag_geom
+    &VERSION=1.1.0
+    &MAXFEATURES=100
+    &SRSNAME=EPSG:900913
+    &OUTPUT=GML2
+    &EXCEPTIONS=text/xml
+    &KEY=[YOUR_KEY]
+    &DOMAIN=[YOUR_DOMAIN]
+
+■ Data API 요청 URL 예시 (대안)
+  https://api.vworld.kr/req/data?
+    key=[YOUR_KEY]
+    &domain=[YOUR_DOMAIN]
+    &service=data
+    &version=2.0
+    &request=GetFeature
+    &format=json
+    &size=100
+    &page=1
+    &geometry=true
+    &attribute=true
+    &crs=EPSG:3857
+    &data=LT_C_LANDINFOBASEMAP
+    &geomfilter=BOX(13987670,3912271,14359383,4642932)
+
+■ 확인 사항
+  · Utilization-Model에서는 lt_c_landinfobasemap 사용 안 함
+  · CSV에 레이어 정의는 존재함
+
+■ 요청 테스트 결과 (2025-01)
+  · 인증키 BE99E2C1-BD42-3D67-89DC-430FB199B70D
+    → WFS / Data API 모두 "INCORRECT_KEY" (인증키 정보가 올바르지 않습니다.)
+    → KEY·DOMAIN 확인 또는 vworld 개발자센터에서 키/도메인 등록 필요.
+  · 인증키 CEB52025-E065-364C-9DBA-44880E3B02B8, domain=http://localhost:8080
+    → Data API: OK. total 36,630,479건, features 5건 샘플 수신 (pnu, sido_nm, sgg_nm, emd_nm, jibun, jimok, parea, rn_nm, bld_mnnm, bld_slno, geometry 등)
+    → WFS: OK. GeoJSON FeatureCollection 수신 (lt_c_landinfobasemap 피처 정상)
+  · 결론: lt_c_landinfobasemap(LX맵) 레이어는 요청 가능. 사용 시 유효한 KEY·DOMAIN 필요.
+
+■ LX맵·도로명주소건물 동일 키 검증 (2025-01)
+  · 키: CEB52025-E065-364C-9DBA-44880E3B02B8, domain=http://localhost:8080
+  · geomfilter: BOX(14134500,4518600,14136500,4520600) — 약 4km² (서울 종로구 인근)
+  · Data API req/data 동일 조건으로 요청:
+    - LT_C_LANDINFOBASEMAP (LX맵): status OK, total 7,843건
+    - LT_C_SPBD (도로명주소건물): status OK, total 3,942건
+  · 결론: LX맵·도로명주소건물 둘 다 동일 키로 요청 가능.
+  · 참고: geomFilter BOX/polygon 면적은 10km² 이내여야 함. 초과 시 INVALID_RANGE.
+
+■ .env 기반 테스트 (2025-01)
+  · .env: vworld_api_key 사용. (선택) vworld_domain — 없으면 http://localhost 사용.
+  · domain=http://localhost:8080 → INCORRECT_KEY. domain=http://localhost → OK.
+  · .env 키 + domain=http://localhost, geomfilter=BOX(14134500,4518600,14136500,4520600):
+    - LT_C_LANDINFOBASEMAP (LX맵): status OK, total 7,843건
+    - LT_C_SPBD (도로명주소건물): status OK, total 3,942건
+  · 결론: .env vworld_api_key로 LX맵·도로명주소건물 요청 가능. domain은 vworld 등록값과 일치해야 함.
+
+■ BE99E2C1-BD42-3D67-89DC-430FB199B70D 키 테스트 (2025-01)
+  · WFS.txt 예제 키. 다양한 domain으로 테스트:
+    - http://localhost, https://localhost
+    - http://localhost:8080, https://localhost:8080
+    - http://127.0.0.1, http://127.0.0.1:8080
+    - http://example.com, https://example.com
+  · 결과: 모든 domain에서 "INCORRECT_KEY" (인증키 정보가 올바르지 않습니다.)
+  · 가능한 원인:
+    1) 키가 만료되었거나 비활성화됨
+    2) 등록된 domain이 테스트한 domain과 다름 (vworld 개발자센터에서 확인 필요)
+    3) 키가 특정 레이어/서비스로만 제한됨
+  · 결론: 현재 테스트 환경에서는 사용 불가. vworld 개발자센터에서 키 상태 및 등록 domain 확인 필요.
+

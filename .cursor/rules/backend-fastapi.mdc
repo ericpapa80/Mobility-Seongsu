@@ -1,0 +1,49 @@
+---
+description: FastAPI 백엔드 라우터, 모델, DB fallback, 응답 형식 컨벤션
+globs: backend/**/*.py
+alwaysApply: false
+---
+
+# Backend FastAPI Convention
+
+## Project Structure
+
+```
+backend/
+  app/
+    main.py          ← FastAPI app, lifespan, CORS, static mount
+    config.py        ← pydantic-settings (DATABASE_URL, CORS_ORIGINS, PORT)
+    api/             ← 도메인별 라우터 (1파일 1도메인)
+      bus.py         ← tags=["bus"]
+      map_data.py    ← tags=["map"]
+    db/
+      database.py    ← async engine, is_db_available(), get_db()
+      models.py      ← SQLAlchemy + GeoAlchemy2 모델
+    services/        ← JSON fallback 서비스 (DB 없을 때)
+      bus_json.py
+  scripts/           ← DB 초기화·적재 스크립트
+```
+
+## Router Pattern
+
+```python
+# Good — DB 가용 여부에 따라 분기
+@router.get("/bus-stops")
+async def get_bus_stops():
+    if not is_db_available():
+        return bus_json.get_bus_stops()
+    # ... DB 쿼리 ...
+
+# Bad — DB 실패 시 500 에러 방치
+@router.get("/bus-stops")
+async def get_bus_stops(db=Depends(get_db)):
+    result = await db.execute(...)  # DB 없으면 crash
+```
+
+## Rules
+
+- 엔드포인트: `/api/{resource}` REST 형식, **복수형 명사** (`/api/bus-stops`, `/api/road-segments`)
+- 응답: `{"resource_plural": [...]}` dict 반환 (예: `{"stops": [...]}`, `{"segments": [...]}`)
+- Silver JSON 경로: `pipeline/silver/` 를 `DATA_FILE` 상수로 참조
+- 설정: `app/config.py`의 `Settings` 클래스, `env_file="../.env"`
+- 새 도메인 추가 시: `app/api/{domain}.py` 생성 → `main.py`에 `include_router` 등록

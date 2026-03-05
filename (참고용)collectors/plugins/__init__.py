@@ -1,0 +1,2 @@
+"""Scraper plugins directory."""
+

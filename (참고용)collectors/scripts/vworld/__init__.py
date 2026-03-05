@@ -1,0 +1,1 @@
+"""VWorld collection scripts."""

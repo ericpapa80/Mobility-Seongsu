@@ -1,0 +1,37 @@
+---
+description: 프로젝트 전체 아키텍처, 기술 스택, 디렉터리 책임, 데이터 흐름 가이드
+alwaysApply: true
+---
+
+# Project Architecture — Mobility Seongsu
+
+## Tech Stack
+
+- **Frontend**: React 19 + Vite + TypeScript, Deck.gl + react-map-gl/maplibre, D3.js, @tanstack/react-query
+- **Backend**: FastAPI + Uvicorn, SQLAlchemy asyncio + GeoAlchemy2 + asyncpg, Pydantic v2
+- **Database**: PostgreSQL + PostGIS (Railway template)
+- **Deploy**: Railway (Frontend / Backend / PostGIS 분리 서비스)
+
+## Directory Responsibilities
+
+| Directory | 역할 | 언어 |
+|-----------|------|------|
+| `pipeline/` | ETL 파이프라인 — 수집(extractors), 가공(transforms), 데이터(bronze/silver/ref) | Python |
+| `backend/` | REST API 서버 — 라우터, 모델, DB, JSON fallback 서비스 | Python |
+| `frontend/` | SPA 대시보드 — 컴포넌트, 뷰, 훅, 차트, 지도 | TypeScript/React |
+| `Docs/` | API 문서, 검토 메모, PDF 가이드 (코드에서 참조하지 않음) | 한국어 |
+
+## Data Flow
+
+```
+pipeline/extractors/ → pipeline/bronze/ (원시 CSV)
+pipeline/bronze/ + pipeline/ref/ → pipeline/transforms/ → pipeline/silver/ (최종 JSON)
+pipeline/silver/ → backend/app/services/ (JSON fallback) 또는 PostGIS DB
+backend API (/api/*) → frontend hooks (useQuery) → components
+```
+
+## Rules
+
+- 코드·파일명은 **영문 소문자 + 언더스코어**, 주석·문서는 한국어 허용
+- 환경 변수는 루트 `.env`에만 저장, **절대 커밋 금지**
+- PowerShell 환경: `&&` 연산자 사용 금지, 명령 체이닝은 `;` 사용

@@ -1,0 +1,30 @@
+{
+"type": "FeatureCollection",
+"name": "ss_pt_subway_entrc",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 1, "SIG_CD": "11200", "SUB_ENT_SN": 55, "ENTRC_NO": 1, "OPERT_DE": "20161129181529", "KOR_SUB_NM": "서울숲역", "SUB_STA_SN": 41 }, "geometry": { "type": "Point", "coordinates": [ 127.045005099931615, 37.544299577255629 ] } },
+{ "type": "Feature", "properties": { "fid": 2, "SIG_CD": "11200", "SUB_ENT_SN": 56, "ENTRC_NO": 2, "OPERT_DE": "20161129181529", "KOR_SUB_NM": "서울숲역", "SUB_STA_SN": 41 }, "geometry": { "type": "Point", "coordinates": [ 127.044671357593771, 37.542993192638484 ] } },
+{ "type": "Feature", "properties": { "fid": 3, "SIG_CD": "11200", "SUB_ENT_SN": 57, "ENTRC_NO": 3, "OPERT_DE": "20161129181529", "KOR_SUB_NM": "서울숲역", "SUB_STA_SN": 41 }, "geometry": { "type": "Point", "coordinates": [ 127.044450125693515, 37.542966491272303 ] } },
+{ "type": "Feature", "properties": { "fid": 4, "SIG_CD": "11200", "SUB_ENT_SN": 58, "ENTRC_NO": 5, "OPERT_DE": "20161129181529", "KOR_SUB_NM": "서울숲역", "SUB_STA_SN": 41 }, "geometry": { "type": "Point", "coordinates": [ 127.044505418016627, 37.544549406676815 ] } },
+{ "type": "Feature", "properties": { "fid": 5, "SIG_CD": "11215", "SUB_ENT_SN": 220, "ENTRC_NO": 1, "OPERT_DE": null, "KOR_SUB_NM": "건대입구역", "SUB_STA_SN": 190 }, "geometry": { "type": "Point", "coordinates": [ 127.068520432139309, 37.540656864891083 ] } },
+{ "type": "Feature", "properties": { "fid": 6, "SIG_CD": "11215", "SUB_ENT_SN": 221, "ENTRC_NO": 2, "OPERT_DE": null, "KOR_SUB_NM": "건대입구역", "SUB_STA_SN": 190 }, "geometry": { "type": "Point", "coordinates": [ 127.069993815137494, 37.540184147525231 ] } },
+{ "type": "Feature", "properties": { "fid": 7, "SIG_CD": "11215", "SUB_ENT_SN": 222, "ENTRC_NO": 3, "OPERT_DE": null, "KOR_SUB_NM": "건대입구역", "SUB_STA_SN": 190 }, "geometry": { "type": "Point", "coordinates": [ 127.07140150944258, 37.541419149900818 ] } },
+{ "type": "Feature", "properties": { "fid": 8, "SIG_CD": "11215", "SUB_ENT_SN": 223, "ENTRC_NO": 4, "OPERT_DE": null, "KOR_SUB_NM": "건대입구역", "SUB_STA_SN": 190 }, "geometry": { "type": "Point", "coordinates": [ 127.070910127718321, 37.540369143898843 ] } },
+{ "type": "Feature", "properties": { "fid": 9, "SIG_CD": "11215", "SUB_ENT_SN": 224, "ENTRC_NO": 5, "OPERT_DE": null, "KOR_SUB_NM": "건대입구역", "SUB_STA_SN": 190 }, "geometry": { "type": "Point", "coordinates": [ 127.069938387611856, 37.540068156443127 ] } },
+{ "type": "Feature", "properties": { "fid": 10, "SIG_CD": "11215", "SUB_ENT_SN": 225, "ENTRC_NO": 6, "OPERT_DE": null, "KOR_SUB_NM": "건대입구역", "SUB_STA_SN": 190 }, "geometry": { "type": "Point", "coordinates": [ 127.068454500820579, 37.540529617478832 ] } },
+{ "type": "Feature", "properties": { "fid": 11, "SIG_CD": "11200", "SUB_ENT_SN": 2029, "ENTRC_NO": 5, "OPERT_DE": null, "KOR_SUB_NM": "뚝섬역", "SUB_STA_SN": 322 }, "geometry": { "type": "Point", "coordinates": [ 127.048274750174286, 37.546824513819047 ] } },
+{ "type": "Feature", "properties": { "fid": 12, "SIG_CD": "11200", "SUB_ENT_SN": 2030, "ENTRC_NO": 6, "OPERT_DE": null, "KOR_SUB_NM": "뚝섬역", "SUB_STA_SN": 322 }, "geometry": { "type": "Point", "coordinates": [ 127.047848841562327, 37.546970099009364 ] } },
+{ "type": "Feature", "properties": { "fid": 13, "SIG_CD": "11200", "SUB_ENT_SN": 2031, "ENTRC_NO": 4, "OPERT_DE": null, "KOR_SUB_NM": "뚝섬역", "SUB_STA_SN": 322 }, "geometry": { "type": "Point", "coordinates": [ 127.048323492228079, 37.546958001556767 ] } },
+{ "type": "Feature", "properties": { "fid": 14, "SIG_CD": "11200", "SUB_ENT_SN": 2032, "ENTRC_NO": 3, "OPERT_DE": null, "KOR_SUB_NM": "뚝섬역", "SUB_STA_SN": 322 }, "geometry": { "type": "Point", "coordinates": [ 127.047907457060091, 37.547093312764964 ] } },
+{ "type": "Feature", "properties": { "fid": 15, "SIG_CD": "11200", "SUB_ENT_SN": 2033, "ENTRC_NO": 7, "OPERT_DE": null, "KOR_SUB_NM": "뚝섬역", "SUB_STA_SN": 322 }, "geometry": { "type": "Point", "coordinates": [ 127.046806080797438, 37.547283381818538 ] } },
+{ "type": "Feature", "properties": { "fid": 16, "SIG_CD": "11200", "SUB_ENT_SN": 2034, "ENTRC_NO": 8, "OPERT_DE": null, "KOR_SUB_NM": "뚝섬역", "SUB_STA_SN": 322 }, "geometry": { "type": "Point", "coordinates": [ 127.046381769902112, 37.547421145059232 ] } },
+{ "type": "Feature", "properties": { "fid": 17, "SIG_CD": "11200", "SUB_ENT_SN": 2035, "ENTRC_NO": 2, "OPERT_DE": null, "KOR_SUB_NM": "뚝섬역", "SUB_STA_SN": 322 }, "geometry": { "type": "Point", "coordinates": [ 127.046866617609965, 37.547408735709254 ] } },
+{ "type": "Feature", "properties": { "fid": 18, "SIG_CD": "11200", "SUB_ENT_SN": 2036, "ENTRC_NO": 1, "OPERT_DE": null, "KOR_SUB_NM": "뚝섬역", "SUB_STA_SN": 322 }, "geometry": { "type": "Point", "coordinates": [ 127.046445542153535, 37.547548124509127 ] } },
+{ "type": "Feature", "properties": { "fid": 19, "SIG_CD": "11200", "SUB_ENT_SN": 2025, "ENTRC_NO": 3, "OPERT_DE": null, "KOR_SUB_NM": "성수역", "SUB_STA_SN": 323 }, "geometry": { "type": "Point", "coordinates": [ 127.056985793004031, 37.544158675179347 ] } },
+{ "type": "Feature", "properties": { "fid": 20, "SIG_CD": "11200", "SUB_ENT_SN": 2026, "ENTRC_NO": 2, "OPERT_DE": null, "KOR_SUB_NM": "성수역", "SUB_STA_SN": 323 }, "geometry": { "type": "Point", "coordinates": [ 127.057032387386172, 37.544267749205034 ] } },
+{ "type": "Feature", "properties": { "fid": 21, "SIG_CD": "11200", "SUB_ENT_SN": 2027, "ENTRC_NO": 4, "OPERT_DE": null, "KOR_SUB_NM": "성수역", "SUB_STA_SN": 323 }, "geometry": { "type": "Point", "coordinates": [ 127.055130059671399, 37.544732009524019 ] } },
+{ "type": "Feature", "properties": { "fid": 22, "SIG_CD": "11200", "SUB_ENT_SN": 2028, "ENTRC_NO": 1, "OPERT_DE": null, "KOR_SUB_NM": "성수역", "SUB_STA_SN": 323 }, "geometry": { "type": "Point", "coordinates": [ 127.055173486992999, 37.544846739502745 ] } },
+{ "type": "Feature", "properties": { "fid": 23, "SIG_CD": "11200", "SUB_ENT_SN": 59, "ENTRC_NO": 4, "OPERT_DE": null, "KOR_SUB_NM": "서울숲역", "SUB_STA_SN": 41 }, "geometry": { "type": "Point", "coordinates": [ 127.043870725289693, 37.54387640096018 ] } }
+]
+}

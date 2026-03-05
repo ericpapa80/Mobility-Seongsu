@@ -1,0 +1,50 @@
+---
+description: CSS 디자인 토큰, 네이밍, 다크 테마 전용 스타일 규칙
+globs: frontend/src/**/*.css
+alwaysApply: false
+---
+
+# Frontend CSS Convention
+
+## Design Tokens (index.css :root)
+
+색상·간격·반경·그림자는 반드시 CSS 변수를 사용한다. 하드코딩 금지.
+
+```css
+/* Good */
+background: var(--bg-card);
+color: var(--text-primary);
+border: 1px solid var(--border);
+border-radius: var(--radius-md);
+
+/* Bad */
+background: #1a2236;
+color: white;
+border-radius: 10px;
+```
+
+### Available Tokens
+
+| Category | Variables |
+|----------|-----------|
+| 배경 | `--bg-primary`, `--bg-secondary`, `--bg-card`, `--bg-card-hover`, `--bg-input` |
+| 텍스트 | `--text-primary`, `--text-secondary`, `--text-muted` |
+| 보더 | `--border`, `--border-active` |
+| 강조색 | `--accent-blue`, `--accent-cyan`, `--accent-green`, `--accent-amber`, `--accent-red`, `--accent-purple`, `--accent-pink` |
+| 그래디언트 | `--gradient-blue`, `--gradient-green`, `--gradient-amber`, `--gradient-red`, `--gradient-purple` |
+| 그림자 | `--shadow-sm`, `--shadow-md`, `--shadow-lg` |
+| 반경 | `--radius-sm`(6px), `--radius-md`(10px), `--radius-lg`(14px), `--radius-xl`(20px) |
+| 레이아웃 | `--header-height`(56px) |
+
+## Naming
+
+- 컴포넌트 스코프 네이밍: `.sidebar-section-title`, `.kpi-card`, `.chart-mode-btns`
+- BEM 사용하지 않음
+- 파일명은 컴포넌트와 1:1 매칭 (`Header.tsx` ↔ `Header.css`)
+
+## Rules
+
+- 다크 테마 전용 디자인 — 밝은 배경색 직접 사용 금지
+- 상호작용 요소에 `transition: all 0.2s` 기본 적용
+- 스크롤바: `index.css`에 전역 정의됨, 개별 재정의 불필요
+- 새 강조색 필요 시: `index.css`의 `:root`에 `--accent-*` 변수 추가

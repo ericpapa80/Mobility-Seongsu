@@ -1,0 +1,127 @@
+## metadata *2025년 3분기 기준
+성수동 공간 범위 기준으로 수집
+minx : 202622.01705
+miny : 448184.6408259765
+maxx : 206416.51705
+maxy : 450614.1408259765
+
+wkt
+dayweek : (주중)1, (주말)2
+agrde : (전체)00, (10대)10, (20대)20, (30대)30, (40대)40, (50대)50, (60대이상)60
+tmzon : (종일)00, (00~05)01, (06~10)02, (11~13)03, (14~16)04, (17~20)05, (21~23)06
+ext : ext
+signguCd : 11
+
+=========================
+
+##General
+
+Request URL
+https://golmok.seoul.go.kr/tool/wfs/fpop.json
+Request Method
+POST
+Status Code
+200 OK
+Remote Address
+115.84.164.137:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+=========================
+
+##Request Header
+
+accept
+application/json, text/javascript, */*; q=0.01
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+ko,en;q=0.9,en-US;q=0.8
+cache-control
+no-cache
+connection
+keep-alive
+content-length
+134
+content-type
+application/x-www-form-urlencoded; charset=UTF-8
+cookie
+_ga_VGT5MBQV97=GS1.1.1736380777.1.1.1736380835.0.0.0; _ga_X2EQ0N41NP=GS1.1.1736380778.1.1.1736380835.0.0.0; WL_PCID=17384151677524965278317; _ga_KFN5RYC9BB=GS1.3.1739864487.2.0.1739864487.0.0.0; _ga=GA1.1.777080228.1725195396; PCID=17585626849599163363262; RC_RESOLUTION=1440*900; RC_COLOR=24; _ga_73NXL9PNEP=GS2.1.s1759058098$o2$g0$t1759058098$j60$l0$h0; _ga_LHLLS01TCQ=GS2.1.s1759058097$o2$g0$t1759058249$j60$l0$h1826555231; _ga_YF59KRM6NR=GS2.1.s1766387057$o1$g1$t1766387097$j20$l0$h0; _ga_0T3XG23CN7=GS2.1.s1766452928$o13$g1$t1766452929$j59$l0$h0; i18next=ko; JSESSIONIDMOK=UmdMJZ190JpConk041s2TTOkGYcaXEEcN2aMry36fD5lovQltzB7KloK0A2LeHrk.amV1c19kb21haW4vZ29sbW9rMQ==
+host
+golmok.seoul.go.kr
+origin
+https://golmok.seoul.go.kr
+pragma
+no-cache
+referer
+https://golmok.seoul.go.kr/commercialArea/commercialArea.do
+sec-ch-ua
+"Microsoft Edge";v="143", "Chromium";v="143", "Not A(Brand";v="24"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-platform
+"Windows"
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-origin
+user-agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0
+x-requested-with
+XMLHttpRequest
+
+=====================================
+
+## Payload
+
+minx=202622.01705&miny=448184.6408259765&maxx=206416.51705&maxy=450614.1408259765&wkt=&dayweek=1&agrde=00&tmzon=01&ext=ext&signguCd=11
+
+=====================================
+
+## Response
+
+[
+    {
+        "roadLinkId": "106743",
+        "cost": 2040,
+        "grade": 5,
+        "per": 100,
+        "mxcost": 2040,
+        "micost": 0,
+        "acost": 2040,
+        "wkt": "LINESTRING (205808.69 449527.63, 205809.24 449528.76, 205814.85 449542.44, 205821.05 449555.32)"
+    },
+    {
+        "roadLinkId": "106495",
+        "cost": 1918,
+        "grade": 5,
+        "per": 94.05029946989006711522908168899326666136,
+        "mxcost": 2040,
+        "micost": 0,
+        "acost": 1979,
+        "wkt": "LINESTRING (205821.05 449555.32, 205826.2 449568.38)"
+    },
+    {
+        "roadLinkId": "106351",
+        "cost": 1364,
+        "grade": 5,
+        "per": 66.86070408505225132388581582631379604162,
+        "mxcost": 2040,
+        "micost": 0,
+        "acost": 1774,
+        "wkt": "LINESTRING (205763.79 449591.97, 205812.14 449573.67, 205826.2 449568.38)"
+    },
+    {
+        "roadLinkId": "100949",
+        "cost": 1287,
+        "grade": 5,
+        "per": 63.11363628842892564525836991655238942888,
+        "mxcost": 2040,
+        "micost": 0,
+        "acost": 1579,
+        "wkt": "LINESTRING (206214.13 449971.09, 206197.86 449973.29)"
+    },
+
+=====================================

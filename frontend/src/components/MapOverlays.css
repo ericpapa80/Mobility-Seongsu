@@ -1,0 +1,122 @@
+/* Search Bar */
+.map-search {
+  position: absolute;
+  top: 16px; left: 16px; z-index: 810;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  box-shadow: var(--shadow-md);
+  width: 280px;
+}
+.map-search i { font-size: 16px; color: var(--text-muted); }
+.map-search input {
+  border: none; background: none; outline: none;
+  color: var(--text-primary); font-size: 13px;
+  font-family: inherit; width: 100%;
+}
+.map-search input::placeholder { color: var(--text-muted); }
+
+/* Info Chips */
+.map-info-chips {
+  position: absolute;
+  top: 16px; right: 16px; z-index: 810;
+  display: flex; gap: 8px;
+}
+.info-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px; font-weight: 500;
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+}
+.chip-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.chip-dot.live {
+  background: var(--accent-green);
+  box-shadow: 0 0 6px rgba(16,185,129,0.5);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Layer Legends — 켜진 레이어에 따라 표시 */
+.map-legends {
+  position: absolute;
+  bottom: 140px; right: 16px; z-index: 810;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.map-legend-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-md);
+}
+
+.legend-overlay-title {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--text-muted); margin-bottom: 6px;
+}
+.legend-meta {
+  font-weight: 500; text-transform: none;
+  letter-spacing: 0; opacity: 0.85;
+}
+
+.legend-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 4px;
+}
+.legend-row.legend-colors {
+  margin-top: 6px; gap: 12px;
+}
+.legend-colors + .legend-bar-labels {
+  display: flex; gap: 12px;
+  justify-content: flex-start;
+}
+.legend-colors + .legend-bar-labels span {
+  flex: 0 0 auto; text-align: left;
+}
+.legend-label {
+  font-size: 10px; color: var(--text-secondary);
+  min-width: 32px;
+}
+.legend-desc {
+  font-size: 10px; color: var(--text-muted);
+}
+.legend-swatch {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+.legend-swatch.risk {
+  width: 12px; height: 12px;
+}
+
+.legend-bar { display: flex; gap: 2px; }
+.lb-item {
+  width: 28px; height: 8px; border-radius: 2px;
+}
+.legend-bar-labels {
+  display: flex; justify-content: space-between;
+  margin-top: 3px;
+}
+.legend-bar-labels span {
+  font-size: 9px; color: var(--text-muted);
+}
+
+.legend-gradient-bar {
+  height: 8px; border-radius: 2px;
+  margin-top: 4px;
+}
+.legend-gradient-bar.store-density {
+  background: linear-gradient(to right, #fdf7ec, #fdd0a2, #fdae6b, #f16913, #d94801, #8c2d04);
+}

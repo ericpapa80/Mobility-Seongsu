@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-world WFS 2.0 예제</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>V-world WFS 2.0 API 예제</h1>
+    
+    <div class="container">
+        <div>
+            <h2>요청 설정</h2>
+            <form id="wfsForm">
+                <div class="form-group">
+                    <label>인증키 (KEY):</label>
+                    <input type="text" id="apiKey" placeholder="YOUR_API_KEY" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>도메인 (DOMAIN):</label>
+                    <input type="text" id="domain" value="http://localhost" placeholder="http://localhost" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>레이어 ID (TYPENAME):</label>
+                    <select id="layerId">
+                        <option value="lt_c_landinfobasemap">lt_c_landinfobasemap (LX맵)</option>
+                        <option value="lt_c_spbd">lt_c_spbd (도로명주소건물)</option>
+                        <option value="lp_pa_cbnd_bubun">lp_pa_cbnd_bubun (지적도 부번)</option>
+                        <option value="lt_c_uq111">lt_c_uq111 (도시지역)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>BBOX (minX,minY,maxX,maxY):</label>
+                    <input type="text" id="bbox" value="14134500,4518600,14136500,4520600" placeholder="14134500,4518600,14136500,4520600" required>
+                    <small>서울 종로구 인근 (약 4km²)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>최대 피처 수 (MAXFEATURES):</label>
+                    <input type="number" id="maxFeatures" value="10" min="1" max="1000">
+                </div>
+                
+                <div class="form-group">
+                    <label>출력 형식 (OUTPUT):</label>
+                    <select id="output">
+                        <option value="json">json</option>
+                        <option value="GML2">GML2</option>
+                    </select>
+                </div>
+                
+                <button type="submit">WFS 요청 실행</button>
+            </form>
+        </div>
+        
+        <div>
+            <h2>결과</h2>
+            <div id="result" class="result">
+                <p>요청을 실행하면 결과가 여기에 표시됩니다.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            // .env 파일에서 키 로드 (로컬 개발 환경)
+            // 실제 프로덕션에서는 서버에서 환경 변수로 관리
+            
+            $('#wfsForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const apiKey = $('#apiKey').val();
+                const domain = $('#domain').val();
+                const layerId = $('#layerId').val();
+                const bbox = $('#bbox').val();
+                const maxFeatures = $('#maxFeatures').val();
+                const output = $('#output').val();
+                
+                const resultDiv = $('#result');
+                resultDiv.html('<p>요청 중...</p>');
+                
+                // WFS 요청
+                const callbackName = 'wfsCallback' + Date.now();
+                window[callbackName] = function(data) {
+                    delete window[callbackName];
+                    
+                    if (data.ServiceExceptionReport) {
+                        resultDiv.html(`
+                            <div class="error">
+                                <h3>오류 발생</h3>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </div>
+                        `);
+                    } else if (data.features) {
+                        const count = data.features.length;
+                        let html = `
+                            <div class="success">
+                                <h3>성공! (${count}건)</h3>
+                                <p><strong>타입:</strong> ${data.type || 'FeatureCollection'}</p>
+                        `;
+                        
+                        if (data.features.length > 0) {
+                            html += '<h4>샘플 피처:</h4>';
+                            data.features.slice(0, 3).forEach((feature, idx) => {
+                                html += `
+                                    <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 3px;">
+                                        <strong>피처 ${idx + 1}:</strong>
+                                        <pre>${JSON.stringify(feature.properties, null, 2)}</pre>
+                                    </div>
+                                `;
+                            });
+                        }
+                        
+                        html += '</div>';
+                        resultDiv.html(html);
+                    } else {
+                        resultDiv.html(`
+                            <div>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </div>
+                        `);
+                    }
+                };
+                
+                const params = {
+                    SERVICE: 'WFS',
+                    REQUEST: 'GetFeature',
+                    TYPENAME: layerId,
+                    BBOX: bbox,
+                    VERSION: '1.1.0',
+                    MAXFEATURES: maxFeatures,
+                    SRSNAME: 'EPSG:900913',
+                    OUTPUT: output,
+                    KEY: apiKey,
+                    DOMAIN: domain,
+                    format_options: 'callback:' + callbackName
+                };
+                
+                if (output === 'json') {
+                    params.OUTPUT = 'json';
+                }
+                
+                $.ajax({
+                    url: 'https://api.vworld.kr/req/wfs?',
+                    type: 'GET',
+                    dataType: 'jsonp',
+                    data: params,
+                    jsonp: false,
+                    jsonpCallback: callbackName,
+                    timeout: 30000,
+                    error: function(xhr, status, error) {
+                        resultDiv.html(`
+                            <div class="error">
+                                <h3>요청 실패</h3>
+                                <p>상태: ${status}</p>
+                                <p>오류: ${error}</p>
+                            </div>
+                        `);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

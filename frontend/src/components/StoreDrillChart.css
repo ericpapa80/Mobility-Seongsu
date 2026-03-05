@@ -1,0 +1,132 @@
+.drill-container {
+  /* filled by parent ChartCard */
+}
+
+/* Breadcrumb */
+.drill-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+.drill-breadcrumb-spacer {
+  height: 15px;
+  margin-bottom: 8px;
+}
+
+.drill-crumb-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.drill-sep {
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 0 3px;
+}
+
+.drill-crumb {
+  background: none;
+  border: none;
+  color: var(--accent-cyan);
+  font-size: 11px;
+  font-family: inherit;
+  padding: 2px 5px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.drill-crumb:hover:not(:disabled) {
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.drill-crumb.active,
+.drill-crumb:disabled {
+  color: var(--text-secondary);
+  cursor: default;
+  background: none;
+}
+
+/* Area grid (small multiples) */
+.drill-area-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 4px 0 8px;
+}
+
+.drill-area-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px 6px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.drill-area-cell:hover {
+  border-color: var(--accent-cyan);
+  background: rgba(6, 182, 212, 0.05);
+}
+
+.drill-area-name {
+  font-size: 9px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  padding: 0 2px;
+}
+
+.drill-area-total {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Sub-title within drill card */
+.drill-sub-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin: 10px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--border);
+}
+
+/* Auxiliary tabs */
+.drill-aux {
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.drill-aux-tabs {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+/* Area map (polygon + centroid pie) */
+.drill-area-map {
+  width: 100%;
+  padding: 4px 0 8px;
+}
+
+/* Empty state */
+.drill-empty {
+  text-align: center;
+  padding: 28px 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
