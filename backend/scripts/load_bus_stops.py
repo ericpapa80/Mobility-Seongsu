@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Load seongsu_bus_stops_hourly.json into PostGIS database."""
+"""Load bus_stops_hourly.json into database."""
 
 import json
 import asyncio
@@ -25,7 +25,6 @@ async def load_data():
     use_ym = data["meta"]["use_ym"]
 
     async with async_session() as session:
-        # Clear existing data for this use_ym
         await session.execute(text(
             "DELETE FROM bus_stop_hourly WHERE stop_id IN "
             "(SELECT id FROM bus_stops WHERE use_ym = :ym)"
@@ -35,9 +34,8 @@ async def load_data():
 
         for stop in data["stops"]:
             result = await session.execute(text("""
-                INSERT INTO bus_stops (ars_id, node_id, name, geom, routes, use_ym, total_ride, total_alight, total)
-                VALUES (:ars_id, :node_id, :name, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326),
-                        :routes, :use_ym, :total_ride, :total_alight, :total)
+                INSERT INTO bus_stops (ars_id, node_id, name, lng, lat, routes, use_ym, total_ride, total_alight, total)
+                VALUES (:ars_id, :node_id, :name, :lng, :lat, :routes, :use_ym, :total_ride, :total_alight, :total)
                 RETURNING id
             """), {
                 "ars_id": stop["ars_id"],

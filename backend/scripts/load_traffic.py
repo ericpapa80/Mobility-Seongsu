@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Load traffic_seongsu.json into PostGIS database."""
+"""Load traffic_seongsu.json into database."""
 
 import json
 import asyncio
@@ -13,12 +13,6 @@ from app.db.database import engine, async_session
 from app.db.models import Base
 
 DATA_FILE = Path(__file__).resolve().parent.parent.parent / "pipeline" / "silver" / "traffic_seongsu.json"
-
-
-def _linestring_wkt(coordinates: list) -> str:
-    """Convert [[lng, lat], ...] to WKT LINESTRING."""
-    pts = ", ".join(f"{c[0]} {c[1]}" for c in coordinates)
-    return f"LINESTRING({pts})"
 
 
 async def load_data():
@@ -37,15 +31,13 @@ async def load_data():
         inserted = 0
         for seg in data["segments"]:
             coords = seg.get("coordinates", [])
-            geom_wkt = _linestring_wkt(coords) if len(coords) >= 2 else None
 
             await session.execute(text("""
                 INSERT INTO traffic_segments
-                    (link_id, road_name, direction, distance, lanes, road_type, area_type, geom, speeds, use_date)
+                    (link_id, road_name, direction, distance, lanes, road_type, area_type, coordinates, speeds, use_date)
                 VALUES
                     (:link_id, :road_name, :direction, :distance, :lanes, :road_type, :area_type,
-                     CASE WHEN :geom IS NOT NULL THEN ST_GeomFromText(:geom, 4326) ELSE NULL END,
-                     :speeds, :use_date)
+                     :coordinates::jsonb, :speeds, :use_date)
                 ON CONFLICT (link_id) DO UPDATE SET
                     road_name = EXCLUDED.road_name,
                     direction = EXCLUDED.direction,
@@ -53,7 +45,7 @@ async def load_data():
                     lanes = EXCLUDED.lanes,
                     road_type = EXCLUDED.road_type,
                     area_type = EXCLUDED.area_type,
-                    geom = EXCLUDED.geom,
+                    coordinates = EXCLUDED.coordinates,
                     speeds = EXCLUDED.speeds,
                     use_date = EXCLUDED.use_date
             """), {
@@ -64,7 +56,7 @@ async def load_data():
                 "lanes": seg.get("lanes"),
                 "road_type": seg.get("road_type"),
                 "area_type": seg.get("area_type"),
-                "geom": geom_wkt,
+                "coordinates": json.dumps(coords),
                 "speeds": seg.get("speeds", []),
                 "use_date": use_date,
             })

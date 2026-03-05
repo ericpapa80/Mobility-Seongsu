@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 from app.db.database import is_db_available, get_db
 from app.services import bus_json
 
@@ -11,14 +11,13 @@ async def get_bus_stops():
         return bus_json.get_bus_stops()
 
     from sqlalchemy import select
-    from geoalchemy2.functions import ST_X, ST_Y
     from app.db.models import BusStop
 
     async for db in get_db():
         result = await db.execute(
             select(
                 BusStop.id, BusStop.ars_id, BusStop.node_id, BusStop.name,
-                ST_Y(BusStop.geom).label("lat"), ST_X(BusStop.geom).label("lng"),
+                BusStop.lat, BusStop.lng,
                 BusStop.routes, BusStop.use_ym,
                 BusStop.total_ride, BusStop.total_alight, BusStop.total,
             )
@@ -40,14 +39,13 @@ async def get_bus_stops_hourly(hour: int = Query(default=8, ge=0, le=23)):
         return bus_json.get_bus_stops_hourly(hour)
 
     from sqlalchemy import select
-    from geoalchemy2.functions import ST_X, ST_Y
     from app.db.models import BusStop, BusStopHourly
 
     async for db in get_db():
         result = await db.execute(
             select(
                 BusStop.id, BusStop.ars_id, BusStop.node_id, BusStop.name,
-                ST_Y(BusStop.geom).label("lat"), ST_X(BusStop.geom).label("lng"),
+                BusStop.lat, BusStop.lng,
                 BusStop.routes, BusStop.total_ride, BusStop.total_alight, BusStop.total,
                 BusStopHourly.ride, BusStopHourly.alight,
             )
@@ -73,14 +71,13 @@ async def get_all_stops_hourly_full():
         return bus_json.get_all_stops_hourly_full()
 
     from sqlalchemy import select
-    from geoalchemy2.functions import ST_X, ST_Y
     from app.db.models import BusStop, BusStopHourly
 
     async for db in get_db():
         stop_result = await db.execute(
             select(
                 BusStop.id, BusStop.name,
-                ST_Y(BusStop.geom).label("lat"), ST_X(BusStop.geom).label("lng"),
+                BusStop.lat, BusStop.lng,
                 BusStop.total_ride, BusStop.total_alight, BusStop.total,
             )
         )
@@ -116,14 +113,13 @@ async def get_stop_hourly_all(stop_id: int):
         return bus_json.get_stop_hourly_all(stop_id)
 
     from sqlalchemy import select
-    from geoalchemy2.functions import ST_X, ST_Y
     from app.db.models import BusStop, BusStopHourly
 
     async for db in get_db():
         stop_result = await db.execute(
             select(
                 BusStop.id, BusStop.ars_id, BusStop.node_id, BusStop.name,
-                ST_Y(BusStop.geom).label("lat"), ST_X(BusStop.geom).label("lng"),
+                BusStop.lat, BusStop.lng,
                 BusStop.routes,
             ).where(BusStop.id == stop_id)
         )

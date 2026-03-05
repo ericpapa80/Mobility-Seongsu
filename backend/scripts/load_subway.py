@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Load subway_stations_hourly.json into PostGIS database."""
+"""Load subway_stations_hourly.json into database."""
 
 import json
 import asyncio
@@ -34,8 +34,8 @@ async def load_data():
 
         for sta in data["stations"]:
             result = await session.execute(text("""
-                INSERT INTO subway_stations (name, geom, sub_sta_sn, use_date)
-                VALUES (:name, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326), :sub_sta_sn, :use_date)
+                INSERT INTO subway_stations (name, lng, lat, sub_sta_sn, use_date)
+                VALUES (:name, :lng, :lat, :sub_sta_sn, :use_date)
                 RETURNING id
             """), {
                 "name": sta["name"],

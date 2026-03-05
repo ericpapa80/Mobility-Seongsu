@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Load salary_seongsu.json into PostGIS database."""
+"""Load salary_seongsu.json into database."""
 
 import json
 import asyncio
@@ -33,21 +33,16 @@ async def load_data():
         for i in range(0, len(workplaces), BATCH_SIZE):
             batch = workplaces[i:i + BATCH_SIZE]
             for wp in batch:
-                lng = wp.get("lng")
-                lat = wp.get("lat")
                 await session.execute(text("""
-                    INSERT INTO salary_workplaces (name, industry, employees, monthly_salary, geom)
-                    VALUES (
-                        :name, :industry, :employees, :monthly_salary,
-                        CASE WHEN :lng IS NOT NULL THEN ST_SetSRID(ST_MakePoint(:lng, :lat), 4326) ELSE NULL END
-                    )
+                    INSERT INTO salary_workplaces (name, industry, employees, monthly_salary, lng, lat)
+                    VALUES (:name, :industry, :employees, :monthly_salary, :lng, :lat)
                 """), {
                     "name": wp.get("name"),
                     "industry": wp.get("industry"),
                     "employees": wp.get("employees", 0),
                     "monthly_salary": wp.get("monthly_salary", 0),
-                    "lng": lng,
-                    "lat": lat,
+                    "lng": wp.get("lng"),
+                    "lat": wp.get("lat"),
                 })
             await session.commit()
             print(f"  Inserted batch {i // BATCH_SIZE + 1} ({min(i + BATCH_SIZE, len(workplaces))}/{len(workplaces)})")

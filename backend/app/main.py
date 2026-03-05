@@ -17,14 +17,10 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     if is_db_available() and engine is not None:
         try:
-            from sqlalchemy import text
             from app.db.models import Base
             async with engine.begin() as conn:
-                await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
-                logger.info("PostGIS extension enabled")
-            async with engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
-            logger.info("PostGIS tables created/verified")
+            logger.info("DB tables created/verified")
         except Exception as e:
             logger.warning("DB init failed, falling back to JSON mode: %s", e)
             app.state._db_init_error = str(e)[:300]

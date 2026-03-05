@@ -4,7 +4,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.sql import func
-from geoalchemy2 import Geometry
 
 
 class Base(DeclarativeBase):
@@ -19,7 +18,8 @@ class BusStop(Base):
     ars_id = Column(String(10), nullable=False, index=True)
     node_id = Column(String(20), nullable=False, unique=True, index=True)
     name = Column(String(100), nullable=False)
-    geom = Column(Geometry("POINT", srid=4326), nullable=False)
+    lng = Column(Float, nullable=False)
+    lat = Column(Float, nullable=False)
     routes = Column(ARRAY(String), nullable=True)
     use_ym = Column(String(6), nullable=False)
     total_ride = Column(Integer, default=0)
@@ -58,7 +58,8 @@ class SubwayStation(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
-    geom = Column(Geometry("POINT", srid=4326), nullable=False)
+    lng = Column(Float, nullable=False)
+    lat = Column(Float, nullable=False)
     sub_sta_sn = Column(Integer, nullable=True, index=True)
     use_date = Column(String(8), nullable=True)
 
@@ -89,8 +90,8 @@ class TrafficSegment(Base):
     lanes = Column(Integer, nullable=True)
     road_type = Column(String(50), nullable=True)
     area_type = Column(String(20), nullable=True)
-    geom = Column(Geometry("LINESTRING", srid=4326), nullable=True)
-    speeds = Column(ARRAY(Float), nullable=True)   # 24-hour speed array
+    coordinates = Column(JSON, nullable=True)
+    speeds = Column(ARRAY(Float), nullable=True)
     use_date = Column(String(8), nullable=True)
 
 
@@ -105,15 +106,16 @@ class Store(Base):
     category_bg = Column(String(20), nullable=True, index=True)
     category_mi = Column(String(100), nullable=True)
     category_sl = Column(String(100), nullable=True)
-    geom = Column(Geometry("POINT", srid=4326), nullable=True)
+    lng = Column(Float, nullable=True)
+    lat = Column(Float, nullable=True)
     peco_total = Column(BigInteger, default=0)
     peco_individual = Column(BigInteger, default=0)
     peco_corporate = Column(BigInteger, default=0)
     peco_foreign = Column(BigInteger, default=0)
-    times = Column(JSON, nullable=True)      # {아침,점심,오후,저녁,밤,심야,새벽}
-    weekday = Column(JSON, nullable=True)    # {월~일}
-    gender_f = Column(JSON, nullable=True)   # {10대~60대} female
-    gender_m = Column(JSON, nullable=True)   # {10대~60대} male
+    times = Column(JSON, nullable=True)
+    weekday = Column(JSON, nullable=True)
+    gender_f = Column(JSON, nullable=True)
+    gender_m = Column(JSON, nullable=True)
 
 
 # ── 사업장 근로자·임금 (Silver: salary_seongsu.json) ─────────────────
@@ -125,7 +127,8 @@ class SalaryWorkplace(Base):
     industry = Column(String(200), nullable=True, index=True)
     employees = Column(Integer, default=0)
     monthly_salary = Column(Float, default=0)
-    geom = Column(Geometry("POINT", srid=4326), nullable=True)
+    lng = Column(Float, nullable=True)
+    lat = Column(Float, nullable=True)
 
 
 # ── 보행 유동인구 링크 (Silver: foottraffic_seongsu.json) ─────────────
@@ -134,6 +137,7 @@ class FoottrafficLink(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     road_link_id = Column(String(30), nullable=False, unique=True, index=True)
-    geom = Column(Geometry("LINESTRING", srid=4326), nullable=True)
-    centroid = Column(Geometry("POINT", srid=4326), nullable=True)
-    data = Column(JSON, nullable=True)    # nested tmzon/agrde/dayweek structure
+    coordinates = Column(JSON, nullable=True)
+    centroid_lng = Column(Float, nullable=True)
+    centroid_lat = Column(Float, nullable=True)
+    data = Column(JSON, nullable=True)

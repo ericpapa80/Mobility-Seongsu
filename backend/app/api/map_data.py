@@ -45,16 +45,13 @@ async def _db_get_traffic(hour: Optional[int] = None) -> Optional[dict]:
         from sqlalchemy import text as sa_text
         async with async_session() as session:
             rows = (await session.execute(sa_text(
-                "SELECT link_id, road_name, direction, distance, lanes, road_type, area_type, speeds, "
-                "ST_AsGeoJSON(geom)::json AS geom_json FROM traffic_segments"
+                "SELECT link_id, road_name, direction, distance, lanes, road_type, area_type, "
+                "speeds, coordinates FROM traffic_segments"
             ))).all()
         if not rows:
             return None
         segments = []
         for r in rows:
-            coords = []
-            if r.geom_json:
-                coords = r.geom_json.get("coordinates", [])
             sp = r.speeds or []
             seg = {
                 "link_id": r.link_id,
@@ -65,7 +62,7 @@ async def _db_get_traffic(hour: Optional[int] = None) -> Optional[dict]:
                 "road_type": r.road_type or "",
                 "area_type": r.area_type or "",
                 "speeds": sp,
-                "coordinates": coords,
+                "coordinates": r.coordinates or [],
             }
             if hour is not None and sp:
                 seg["speed"] = sp[hour] if hour < len(sp) else 0
@@ -85,8 +82,7 @@ async def _db_get_subway_hourly() -> Optional[dict]:
         from sqlalchemy import text as sa_text
         async with async_session() as session:
             sta_rows = (await session.execute(sa_text(
-                "SELECT id, name, sub_sta_sn, use_date, "
-                "ST_X(geom) AS lng, ST_Y(geom) AS lat FROM subway_stations"
+                "SELECT id, name, sub_sta_sn, use_date, lng, lat FROM subway_stations"
             ))).all()
             if not sta_rows:
                 return None
@@ -130,7 +126,7 @@ async def _db_get_stores(category: Optional[str] = None) -> Optional[dict]:
         async with async_session() as session:
             rows = (await session.execute(sa_text(
                 f"SELECT store_id, name, road_address, category_bg, category_mi, category_sl, "
-                f"ST_X(geom) AS lng, ST_Y(geom) AS lat, peco_total, peco_individual, "
+                f"lng, lat, peco_total, peco_individual, "
                 f"peco_corporate, peco_foreign, times, weekday, gender_f, gender_m "
                 f"FROM stores {where}"
             ), {"cat": category} if category else {})).all()
@@ -165,7 +161,7 @@ async def _db_get_salary(industry: Optional[str] = None) -> Optional[dict]:
         async with async_session() as session:
             rows = (await session.execute(sa_text(
                 f"SELECT name, industry, employees, monthly_salary, "
-                f"ST_X(geom) AS lng, ST_Y(geom) AS lat FROM salary_workplaces {where}"
+                f"lng, lat FROM salary_workplaces {where}"
             ), {"ind": industry} if industry else {})).all()
         if not rows:
             return None
@@ -192,22 +188,18 @@ async def _db_get_foottraffic() -> Optional[dict]:
         from sqlalchemy import text as sa_text
         async with async_session() as session:
             rows = (await session.execute(sa_text(
-                "SELECT road_link_id, "
-                "ST_AsGeoJSON(geom)::json AS geom_json, "
-                "ARRAY[ST_X(centroid), ST_Y(centroid)] AS centroid_arr, "
-                "data FROM foottraffic_links"
+                "SELECT road_link_id, coordinates, centroid_lng, centroid_lat, data "
+                "FROM foottraffic_links"
             ))).all()
         if not rows:
             return None
         links = []
         for r in rows:
-            coords = []
-            if r.geom_json:
-                coords = r.geom_json.get("coordinates", [])
+            centroid = [r.centroid_lng, r.centroid_lat] if r.centroid_lng else []
             links.append({
                 "road_link_id": r.road_link_id,
-                "coordinates": coords,
-                "centroid": list(r.centroid_arr) if r.centroid_arr else [],
+                "coordinates": r.coordinates or [],
+                "centroid": centroid,
                 "data": r.data or {},
             })
         return {"meta": {"link_count": len(links)}, "links": links}

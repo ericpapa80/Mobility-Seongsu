@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Load stores_seongsu.json into PostGIS database."""
+"""Load stores_seongsu.json into database."""
 
 import json
 import asyncio
@@ -33,17 +33,14 @@ async def load_data():
         for i in range(0, len(stores), BATCH_SIZE):
             batch = stores[i:i + BATCH_SIZE]
             for s in batch:
-                lng = s.get("lng")
-                lat = s.get("lat")
                 await session.execute(text("""
                     INSERT INTO stores
                         (store_id, name, road_address, category_bg, category_mi, category_sl,
-                         geom, peco_total, peco_individual, peco_corporate, peco_foreign,
+                         lng, lat, peco_total, peco_individual, peco_corporate, peco_foreign,
                          times, weekday, gender_f, gender_m)
                     VALUES
                         (:store_id, :name, :road_address, :category_bg, :category_mi, :category_sl,
-                         CASE WHEN :lng IS NOT NULL THEN ST_SetSRID(ST_MakePoint(:lng, :lat), 4326) ELSE NULL END,
-                         :peco_total, :peco_individual, :peco_corporate, :peco_foreign,
+                         :lng, :lat, :peco_total, :peco_individual, :peco_corporate, :peco_foreign,
                          :times::jsonb, :weekday::jsonb, :gender_f::jsonb, :gender_m::jsonb)
                     ON CONFLICT (store_id) DO NOTHING
                 """), {
@@ -53,8 +50,8 @@ async def load_data():
                     "category_bg": s.get("category_bg"),
                     "category_mi": s.get("category_mi"),
                     "category_sl": s.get("category_sl"),
-                    "lng": lng,
-                    "lat": lat,
+                    "lng": s.get("lng"),
+                    "lat": s.get("lat"),
                     "peco_total": s.get("peco_total", 0),
                     "peco_individual": s.get("peco_individual", 0),
                     "peco_corporate": s.get("peco_corporate", 0),
