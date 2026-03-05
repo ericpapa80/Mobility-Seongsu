@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -10,14 +11,13 @@ class Settings(BaseSettings):
 
     model_config = {"env_file": "../.env", "extra": "ignore"}
 
-    def model_post_init(self, __context: object) -> None:
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def fix_db_url(cls, v: str) -> str:
         # Railway는 postgresql:// 형식으로 제공 → asyncpg 드라이버용으로 자동 변환
-        if self.DATABASE_URL.startswith("postgresql://"):
-            object.__setattr__(
-                self,
-                "DATABASE_URL",
-                self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1),
-            )
+        if isinstance(v, str) and v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
 
 
 @lru_cache()
