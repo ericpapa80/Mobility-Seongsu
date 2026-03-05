@@ -338,6 +338,25 @@ async def get_traffic_realtime_status():
     }
 
 
+@router.get("/traffic/realtime/collect")
+async def collect_traffic_realtime():
+    """크론잡 전용 — 수집 후 최소 응답만 반환 (좌표 제외)"""
+    from app.config import get_settings
+    from app.services.topis_client import get_topis_client
+
+    settings = get_settings()
+    if not settings.SEOUL_OPEN_DATA_KEY:
+        return {"ok": False, "reason": "no_api_key"}
+
+    client = get_topis_client(settings.SEOUL_OPEN_DATA_KEY)
+    result = await client.get_realtime()
+    return {
+        "ok": True,
+        "collected": result.get("meta", {}).get("segment_count", 0),
+        "fetched_at": result.get("meta", {}).get("fetched_at"),
+    }
+
+
 @router.get("/traffic/realtime")
 async def get_traffic_realtime():
     """TOPIS 실시간 도로 소통 정보 (5분 캐시)"""
