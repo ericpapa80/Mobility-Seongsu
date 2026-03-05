@@ -10,6 +10,15 @@ class Settings(BaseSettings):
 
     model_config = {"env_file": "../.env", "extra": "ignore"}
 
+    def model_post_init(self, __context: object) -> None:
+        # Railway는 postgresql:// 형식으로 제공 → asyncpg 드라이버용으로 자동 변환
+        if self.DATABASE_URL.startswith("postgresql://"):
+            object.__setattr__(
+                self,
+                "DATABASE_URL",
+                self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1),
+            )
+
 
 @lru_cache()
 def get_settings() -> Settings:
