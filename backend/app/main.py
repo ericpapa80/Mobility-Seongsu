@@ -23,12 +23,10 @@ async def lifespan(app: FastAPI):
             logger.info("DB tables created/verified")
         except Exception as e:
             logger.warning("DB init failed, falling back to JSON mode: %s", e)
-            app.state._db_init_error = str(e)[:300]
             from app.db import database
             database._db_available = False
     else:
         logger.info("No DATABASE_URL or DB unavailable — running in JSON-only mode")
-        app.state._db_init_error = "engine_not_created"
     yield
     if is_db_available() and engine is not None:
         await engine.dispose()
@@ -56,18 +54,7 @@ app.include_router(map_data.router, prefix="/api")
 
 @app.get("/api/health")
 async def health():
-    info = {"status": "ok", "db": is_db_available()}
-    if is_db_available() and engine is not None:
-        try:
-            from sqlalchemy import text
-            async with engine.connect() as conn:
-                row = await conn.execute(text("SELECT 1"))
-                info["db_ping"] = "ok"
-        except Exception as e:
-            info["db_ping"] = str(e)[:200]
-    else:
-        info["db_reason"] = getattr(app.state, "_db_init_error", "engine not created or lifespan failed")
-    return info
+    return {"status": "ok", "db": is_db_available()}
 
 
 frontend_dist = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
