@@ -299,7 +299,14 @@ export default function Sidebar({ layers, onToggle, activeView, foottrafficSetti
 
   useEffect(() => {
     if (trafficMode !== 'realtime' || !layers.traffic) return;
-    api.trafficRealtimeStatus().then(s => setDbStatus(s)).catch(() => {});
+    const fetch = () => {
+      api.trafficRealtimeStatus()
+        .then(s => { if (s && typeof s.total_rows === 'number') setDbStatus(s); })
+        .catch(() => {});
+    };
+    fetch();
+    const timer = setInterval(fetch, 60_000);
+    return () => clearInterval(timer);
   }, [trafficMode, layers.traffic]);
 
   return (
