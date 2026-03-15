@@ -313,4 +313,26 @@ export const api = {
   kraftonCluster: () => fetchJson<GeoJSONCollection>('/api/krafton-cluster'),
   commercialArea: () => fetchJson<GeoJSONCollection>('/api/commercial-area'),
   crossAnalysis: () => fetchJson<CrossAnalysisResponse>('/api/cross-analysis'),
+  sources: () =>
+    fetchJson<{
+      sources: Array<{
+        id: string;
+        cluster?: string;
+        name: string;
+        provider: string;
+        free?: string;
+        schedule: string;
+        unit?: string;
+        api: string;
+        usage?: string;
+        target?: string;
+        storage: string;
+        status: string;
+      }>;
+      clusters: Array<{
+        id: string;
+        label: string;
+        items: Array<Record<string, unknown>>;
+      }>;
+    }>('/api/sources'),
 };

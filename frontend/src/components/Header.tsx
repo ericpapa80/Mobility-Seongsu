@@ -8,6 +8,7 @@ interface Props {
   onViewChange: (v: ViewTab) => void;
   onDownload: () => void;
   onAdmin: () => void;
+  onSources: () => void;
 }
 
 const VIEW_TABS: { key: ViewTab; label: string }[] = [
@@ -16,7 +17,7 @@ const VIEW_TABS: { key: ViewTab; label: string }[] = [
   { key: 'risk', label: 'Risk & Safety' },
 ];
 
-export default function Header({ activeView, onViewChange, onDownload, onAdmin }: Props) {
+export default function Header({ activeView, onViewChange, onDownload, onAdmin, onSources }: Props) {
   const navigate = useNavigate();
 
   return (
@@ -47,6 +48,9 @@ export default function Header({ activeView, onViewChange, onDownload, onAdmin }
           <option value="2025-Q4">2025년 4분기</option>
           <option value="2025-Q3">2025년 3분기</option>
         </select>
+        <button className="header-btn" onClick={onSources}>
+          <i className="ri-database-2-line" /> 데이터 출처
+        </button>
         <button className="header-btn" onClick={onDownload}>
           <i className="ri-download-2-line" /> 내보내기
         </button>

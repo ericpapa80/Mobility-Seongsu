@@ -6,9 +6,11 @@ interface Props {
   onSearchChange: (q: string) => void;
   layerVisibility: LayerVisibility;
   storeMode?: StoreMode;
+  focusMode?: boolean;
+  onFocusToggle?: () => void;
 }
 
-export default function MapOverlays({ searchQuery, onSearchChange, layerVisibility, storeMode = 'point' }: Props) {
+export default function MapOverlays({ searchQuery, onSearchChange, layerVisibility, storeMode = 'point', focusMode = false, onFocusToggle }: Props) {
   const showSpeedLegend = layerVisibility.traffic;
 
   return (
@@ -23,6 +25,17 @@ export default function MapOverlays({ searchQuery, onSearchChange, layerVisibili
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
+
+      {/* Focus mode toggle */}
+      {onFocusToggle && (
+        <button
+          className="map-focus-btn"
+          onClick={onFocusToggle}
+          title={focusMode ? '포커스 모드 해제' : '지도만 크게 보기'}
+        >
+          <i className={focusMode ? 'ri-fullscreen-exit-line' : 'ri-fullscreen-line'} />
+        </button>
+      )}
 
       {/* Info Chips */}
       <div className="map-info-chips">

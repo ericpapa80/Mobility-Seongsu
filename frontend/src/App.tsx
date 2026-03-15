@@ -18,6 +18,7 @@ export default function App() {
   const [activeView, setActiveView] = useState<ViewTab>(loadView);
   const [showDownload, setShowDownload] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showSources, setShowSources] = useState(false);
 
   const handleViewChange = useCallback((v: ViewTab) => {
     setActiveView(v);
@@ -34,6 +35,7 @@ export default function App() {
           onViewChange={handleViewChange}
           onDownload={() => setShowDownload(true)}
           onAdmin={() => setShowAdmin(true)}
+          onSources={() => setShowSources(true)}
         />
       ) : (
         <Header
@@ -41,6 +43,7 @@ export default function App() {
           onViewChange={handleViewChange}
           onDownload={() => {}}
           onAdmin={() => {}}
+          onSources={() => {}}
         />
       )}
       <Routes>
@@ -51,8 +54,10 @@ export default function App() {
               activeView={activeView}
               showDownload={showDownload}
               showAdmin={showAdmin}
+              showSources={showSources}
               onCloseDownload={() => setShowDownload(false)}
               onCloseAdmin={() => setShowAdmin(false)}
+              onCloseSources={() => setShowSources(false)}
             />
           }
         />

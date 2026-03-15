@@ -12,6 +12,7 @@ import StopDetailPanel from '../components/StopDetailPanel';
 import StoreDetailPanel from '../components/StoreDetailPanel';
 import DownloadModal from '../components/DownloadModal';
 import AdminModal from '../components/AdminModal';
+import SourcesModal from '../components/SourcesModal';
 import {
   useBusStopsHourly,
   useBusStopsHourlyFull,
@@ -60,15 +61,18 @@ interface Props {
   activeView: ViewTab;
   showDownload: boolean;
   showAdmin: boolean;
+  showSources: boolean;
   onCloseDownload: () => void;
   onCloseAdmin: () => void;
+  onCloseSources: () => void;
 }
 
-export default function Dashboard({ activeView, showDownload, showAdmin, onCloseDownload, onCloseAdmin }: Props) {
+export default function Dashboard({ activeView, showDownload, showAdmin, showSources, onCloseDownload, onCloseAdmin, onCloseSources }: Props) {
   const [hour, setHour] = useState(8);
   const [searchQuery, setSearchQuery] = useState('');
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [rightExpanded, setRightExpanded] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
 
   const [layers, setLayers] = useState<LayerVisibility>(loadLayers);
 
@@ -119,12 +123,14 @@ export default function Dashboard({ activeView, showDownload, showAdmin, onClose
 
   return (
     <>
-      <div className="dashboard">
+      <div className={`dashboard${focusMode ? ' focus-mode' : ''}`}>
+        {!focusMode && (
         <Sidebar layers={layers} onToggle={toggleLayer} activeView={activeView}
           foottrafficSettings={ftSettings} onFoottrafficSettings={setFtSettings}
           storeSettings={storeSettings} onStoreSettings={setStoreSettings}
           trafficMode={trafficMode} onTrafficModeChange={setTrafficMode}
           trafficRealtimeTime={trafficRealtimeData?.meta?.fetched_at ?? null} />
+        )}
 
         <div className="dashboard-main">
           <div className="map-area">
@@ -153,11 +159,12 @@ export default function Dashboard({ activeView, showDownload, showAdmin, onClose
               onStoreClick={setSelectedStore}
               drillState={drillState}
             />
-            <MapOverlays searchQuery={searchQuery} onSearchChange={setSearchQuery} layerVisibility={layers} storeMode={storeSettings.mode} />
+            <MapOverlays searchQuery={searchQuery} onSearchChange={setSearchQuery} layerVisibility={layers} storeMode={storeSettings.mode} focusMode={focusMode} onFocusToggle={() => setFocusMode(f => !f)} />
             <TimeSlider hour={hour} onChange={handleHourChange} trafficMode={trafficMode} trafficLayerOn={layers.traffic} />
           </div>
         </div>
 
+        {!focusMode && (
         <RightPanel
           activeView={activeView}
           busStops={busData?.stops ?? []}
@@ -181,6 +188,7 @@ export default function Dashboard({ activeView, showDownload, showAdmin, onClose
           trafficRealtimeSegments={trafficRealtimeData?.segments ?? []}
           trafficPatternData={trafficPatternData ?? null}
         />
+        )}
 
         {selectedStop && (
           <StopDetailPanel
@@ -200,6 +208,7 @@ export default function Dashboard({ activeView, showDownload, showAdmin, onClose
 
       <DownloadModal open={showDownload} onClose={onCloseDownload} />
       <AdminModal open={showAdmin} onClose={onCloseAdmin} />
+      <SourcesModal open={showSources} onClose={onCloseSources} />
     </>
   );
 }

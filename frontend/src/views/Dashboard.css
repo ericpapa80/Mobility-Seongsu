@@ -16,3 +16,8 @@
   position: relative;
   min-height: 0;
 }
+
+.dashboard.focus-mode .dashboard-main {
+  flex: 1;
+  min-width: 0;
+}
