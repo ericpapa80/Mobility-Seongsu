@@ -22,7 +22,7 @@ async def get_bus_stops():
                 BusStop.total_ride, BusStop.total_alight, BusStop.total,
             )
         )
-        return {"stops": [
+        stops = [
             {
                 "id": r.id, "ars_id": r.ars_id, "node_id": r.node_id,
                 "name": r.name, "lat": float(r.lat), "lng": float(r.lng),
@@ -30,7 +30,11 @@ async def get_bus_stops():
                 "total_ride": r.total_ride, "total_alight": r.total_alight, "total": r.total,
             }
             for r in result.all()
-        ]}
+        ]
+        if stops:
+            return {"stops": stops}
+        break
+    return bus_json.get_bus_stops()
 
 
 @router.get("/bus-stops/hourly")
@@ -52,7 +56,7 @@ async def get_bus_stops_hourly(hour: int = Query(default=8, ge=0, le=23)):
             .join(BusStopHourly, BusStop.id == BusStopHourly.stop_id)
             .where(BusStopHourly.hour == hour)
         )
-        return {"hour": hour, "stops": [
+        stops = [
             {
                 "id": r.id, "ars_id": r.ars_id, "node_id": r.node_id,
                 "name": r.name, "lat": float(r.lat), "lng": float(r.lng),
@@ -61,7 +65,11 @@ async def get_bus_stops_hourly(hour: int = Query(default=8, ge=0, le=23)):
                 "ride": r.ride, "alight": r.alight,
             }
             for r in result.all()
-        ]}
+        ]
+        if stops:
+            return {"hour": hour, "stops": stops}
+        break
+    return bus_json.get_bus_stops_hourly(hour)
 
 
 @router.get("/bus-stops/hourly-full")
@@ -82,6 +90,9 @@ async def get_all_stops_hourly_full():
             )
         )
         stops = stop_result.all()
+
+        if not stops:
+            break
 
         hourly_result = await db.execute(
             select(BusStopHourly.stop_id, BusStopHourly.hour,
@@ -105,6 +116,7 @@ async def get_all_stops_hourly_full():
             }
             for s in stops
         ]}
+    return bus_json.get_all_stops_hourly_full()
 
 
 @router.get("/bus-stops/{stop_id}/hourly-all")
@@ -124,17 +136,17 @@ async def get_stop_hourly_all(stop_id: int):
             ).where(BusStop.id == stop_id)
         )
         stop = stop_result.first()
-        if not stop:
-            return {"error": "not found"}
-
-        hourly_result = await db.execute(
-            select(BusStopHourly.hour, BusStopHourly.ride, BusStopHourly.alight)
-            .where(BusStopHourly.stop_id == stop_id)
-            .order_by(BusStopHourly.hour)
-        )
-        return {
-            "id": stop.id, "ars_id": stop.ars_id, "node_id": stop.node_id,
-            "name": stop.name, "lat": float(stop.lat), "lng": float(stop.lng),
-            "routes": stop.routes or [],
-            "hourly": [{"hour": r.hour, "ride": r.ride, "alight": r.alight} for r in hourly_result.all()],
-        }
+        if stop:
+            hourly_result = await db.execute(
+                select(BusStopHourly.hour, BusStopHourly.ride, BusStopHourly.alight)
+                .where(BusStopHourly.stop_id == stop_id)
+                .order_by(BusStopHourly.hour)
+            )
+            return {
+                "id": stop.id, "ars_id": stop.ars_id, "node_id": stop.node_id,
+                "name": stop.name, "lat": float(stop.lat), "lng": float(stop.lng),
+                "routes": stop.routes or [],
+                "hourly": [{"hour": r.hour, "ride": r.ride, "alight": r.alight} for r in hourly_result.all()],
+            }
+        break
+    return bus_json.get_stop_hourly_all(stop_id)
