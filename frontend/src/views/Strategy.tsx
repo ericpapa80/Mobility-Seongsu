@@ -155,7 +155,7 @@ export default function Strategy() {
         </div>
       </aside>
 
-      <div className="strategy-map">
+      <div className="strategy-map" onContextMenu={(e) => e.preventDefault()}>
         <DeckGL
           viewState={viewState}
           onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}

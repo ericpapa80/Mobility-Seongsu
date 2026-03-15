@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { ViewTab } from '../components/Header';
 import type { LayerVisibility, FoottrafficSettings, StoreSettings, TrafficMode } from '../components/Sidebar';
 import type { DrillState } from '../components/StoreDrillChart';
 import { DEFAULT_FT_SETTINGS, DEFAULT_STORE_SETTINGS } from '../components/Sidebar';
 import Sidebar from '../components/Sidebar';
-import DeckMap from '../components/DeckMap';
+import DeckMap, { type DeckMapRef } from '../components/DeckMap';
 import TimeSlider from '../components/TimeSlider';
 import MapOverlays from '../components/MapOverlays';
 import RightPanel from '../components/RightPanel';
@@ -104,6 +104,7 @@ export default function Dashboard({ activeView, showDownload, showAdmin, showSou
 
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [drillState, setDrillState] = useState<DrillState>({ level: 'all' });
+  const deckMapRef = useRef<DeckMapRef>(null);
 
   const handleDrillStateChange = useCallback((state: DrillState) => {
     setDrillState(state);
@@ -135,6 +136,7 @@ export default function Dashboard({ activeView, showDownload, showAdmin, showSou
         <div className="dashboard-main">
           <div className="map-area">
             <DeckMap
+              ref={deckMapRef}
               hour={hour}
               busStops={busData?.stops ?? []}
               subwayStations={subwayData?.stations ?? []}
@@ -159,7 +161,7 @@ export default function Dashboard({ activeView, showDownload, showAdmin, showSou
               onStoreClick={setSelectedStore}
               drillState={drillState}
             />
-            <MapOverlays searchQuery={searchQuery} onSearchChange={setSearchQuery} layerVisibility={layers} storeMode={storeSettings.mode} focusMode={focusMode} onFocusToggle={() => setFocusMode(f => !f)} />
+            <MapOverlays searchQuery={searchQuery} onSearchChange={setSearchQuery} layerVisibility={layers} storeMode={storeSettings.mode} focusMode={focusMode} onFocusToggle={() => setFocusMode(f => !f)} onResetView={() => deckMapRef.current?.resetView()} />
             <TimeSlider hour={hour} onChange={handleHourChange} trafficMode={trafficMode} trafficLayerOn={layers.traffic} />
           </div>
         </div>

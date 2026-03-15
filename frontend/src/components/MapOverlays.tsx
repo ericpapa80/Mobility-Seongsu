@@ -8,34 +8,46 @@ interface Props {
   storeMode?: StoreMode;
   focusMode?: boolean;
   onFocusToggle?: () => void;
+  onResetView?: () => void;
 }
 
-export default function MapOverlays({ searchQuery, onSearchChange, layerVisibility, storeMode = 'point', focusMode = false, onFocusToggle }: Props) {
+export default function MapOverlays({ searchQuery, onSearchChange, layerVisibility, storeMode = 'point', focusMode = false, onFocusToggle, onResetView }: Props) {
   const showSpeedLegend = layerVisibility.traffic;
 
   return (
     <>
-      {/* Search Bar */}
-      <div className="map-search">
-        <i className="ri-search-line" />
-        <input
-          type="text"
-          placeholder="정류장·도로·지역 검색..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
+      {/* Search Bar + View controls */}
+      <div className="map-top-bar">
+        <div className="map-search">
+          <i className="ri-search-line" />
+          <input
+            type="text"
+            placeholder="정류장·도로·지역 검색..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+        </div>
+        <div className="map-view-btns">
+          {onResetView && (
+            <button
+              className="map-reset-btn"
+              onClick={onResetView}
+              title="뷰 원복"
+            >
+              <i className="ri-restart-line" />
+            </button>
+          )}
+          {onFocusToggle && (
+            <button
+              className="map-focus-btn"
+              onClick={onFocusToggle}
+              title={focusMode ? '포커스 모드 해제' : '지도만 크게 보기'}
+            >
+              <i className={focusMode ? 'ri-fullscreen-exit-line' : 'ri-fullscreen-line'} />
+            </button>
+          )}
+        </div>
       </div>
-
-      {/* Focus mode toggle */}
-      {onFocusToggle && (
-        <button
-          className="map-focus-btn"
-          onClick={onFocusToggle}
-          title={focusMode ? '포커스 모드 해제' : '지도만 크게 보기'}
-        >
-          <i className={focusMode ? 'ri-fullscreen-exit-line' : 'ri-fullscreen-line'} />
-        </button>
-      )}
 
       {/* Info Chips */}
       <div className="map-info-chips">

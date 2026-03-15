@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Map as MapGL } from 'react-map-gl/maplibre';
 import DeckGL from '@deck.gl/react';
 import { ScatterplotLayer, PathLayer, TextLayer, GeoJsonLayer } from '@deck.gl/layers';
@@ -58,7 +58,11 @@ interface Props {
   drillState?: DrillState;
 }
 
-export default function DeckMap({
+export interface DeckMapRef {
+  resetView: () => void;
+}
+
+const DeckMapInner = forwardRef<DeckMapRef, Props>(function DeckMapInner({
   hour, busStops,
   subwayStations, subwayEntrances, subwayPolygons,
   subwayHourlyStations, riskPoints,
@@ -66,8 +70,12 @@ export default function DeckMap({
   foottrafficData, foottrafficSettings, stores, storeSettings,
   buildingsGeoJson, salaryWorkplaces, kraftonGeoJson, commercialAreaGeoJson,
   layerVisibility, busStopsFull, onStopClick, onStoreClick, drillState,
-}: Props) {
+}, ref) {
   const [viewState, setViewState] = useState<MapViewState>(INITIAL_VIEW);
+
+  useImperativeHandle(ref, () => ({
+    resetView: () => setViewState(INITIAL_VIEW),
+  }), []);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
 
   const isZoomedIn = viewState.zoom >= ZOOM_EXIT_THRESHOLD;
@@ -628,7 +636,10 @@ export default function DeckMap({
   ].filter(Boolean);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div
+      style={{ position: 'relative', width: '100%', height: '100%' }}
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <DeckGL
         viewState={viewState}
         onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}
@@ -680,4 +691,6 @@ export default function DeckMap({
       )}
     </div>
   );
-}
+});
+
+export default DeckMapInner;
